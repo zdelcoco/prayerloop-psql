@@ -1,7 +1,7 @@
 SELECT
   p.prayer_id,
   p.title,
-  p.description,
+  p.prayer_description,
   pa.access_type,
   pa.access_type_id
 FROM

@@ -1,11 +1,11 @@
 INSERT INTO
   "prayer" (
-    type,
+    prayer_type,
     title,
-    description,
+    prayer_description,
     is_private,
     is_answered,
-    priority,
+    prayer_priority,
     created_by,
     updated_by
   )
