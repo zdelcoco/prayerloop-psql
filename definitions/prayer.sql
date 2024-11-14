@@ -2,12 +2,12 @@ DROP TABLE IF EXISTS "prayer" CASCADE;
 
 CREATE TABLE IF NOT EXISTS "prayer" (
     prayer_id SERIAL PRIMARY KEY,
-    type varchar(20) NOT NULL,
+    prayer_type varchar(20) NOT NULL,
     title VARCHAR(250) NOT NULL,
-    description VARCHAR(3000),
+    prayer_description VARCHAR(3000),
     is_private BOOLEAN DEFAULT FALSE,
     is_answered BOOLEAN DEFAULT FALSE,
-    priority INT DEFAULT 0,
+    prayer_priority INT DEFAULT 0,
     datetime_answered TIMESTAMP,
     datetime_create TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     datetime_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
