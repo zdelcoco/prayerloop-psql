@@ -10,6 +10,7 @@
 \i './definitions/prayer_session.sql'
 \i './definitions/prayer_session_detail.sql'
 \i './definitions/user_stats.sql'
+\i './definitions/notification.sql'
 
 -- seed the tables
 \i './seeds/user_profile_seed.sql'
