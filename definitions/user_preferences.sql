@@ -1,26 +1,30 @@
 DROP TABLE IF EXISTS "user_preferences" CASCADE;
 
 CREATE TABLE user_preferences (
+    user_preferences_id SERIAL PRIMARY KEY, 
     user_profile_id INT NOT NULL,
     preference_key VARCHAR(50) NOT NULL,
     preference_value TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
     datetime_create TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     datetime_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (user_profile_id, preference_key),
     FOREIGN KEY (user_profile_id) REFERENCES user_profile(user_profile_id) ON DELETE CASCADE
 );
 
 /*** comments ***/
 COMMENT ON TABLE user_preferences IS 'This table stores user-specific preferences for the application.';
+COMMENT ON COLUMN user_preferences.user_preferences_id IS 'Unique identifier for the user preference entry.';
 COMMENT ON COLUMN user_preferences.user_profile_id IS 'Unique identifier for the user.';
 COMMENT ON COLUMN user_preferences.preference_key IS 'The key for the preference setting (e.g., theme, notifications).';
 COMMENT ON COLUMN user_preferences.preference_value IS 'The value for the preference setting (e.g., dark mode, true/false).';
+COMMENT ON COLUMN user_preferences.is_active IS 'Indicates if the preference is active. This can be used to disable a preference without deleting it.';
 COMMENT ON COLUMN user_preferences.datetime_create IS 'Timestamp when the preference was created.';
 COMMENT ON COLUMN user_preferences.datetime_update IS 'Timestamp when the preference was last updated.';
 
 /*** indexes ***/
 CREATE INDEX IF NOT EXISTS idx_user_preferences_user_profile_id ON user_preferences(user_profile_id);
 CREATE INDEX IF NOT EXISTS idx_user_preferences_preference_key ON user_preferences(preference_key);
+CREATE INDEX IF NOT EXISTS idx_user_preferences_user_preference_key ON user_preferences(user_profile_id, preference_key);
 
 /*** functions ***/
 CREATE OR REPLACE FUNCTION set_datetime_create()

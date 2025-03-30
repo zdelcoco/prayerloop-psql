@@ -1,6 +1,6 @@
 INSERT INTO
   "user_preferences" (
-    user_id,
+    user_profile_id,
     preference_key,
     preference_value
   )
