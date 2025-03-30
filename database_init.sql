@@ -13,6 +13,7 @@
 \i './definitions/user_stats.sql'
 \i './definitions/notification.sql'
 \i './definitions/group_invite.sql'
+\i './definitions/user_preferences.sql'
 
 -- seed the tables
 \i './seeds/user_profile_seed.sql'
@@ -26,3 +27,4 @@
 \i './seeds/user_stats_seed.sql'
 \i './seeds/notification_seed.sql'
 \i './seeds/group_invite_seed.sql'
+\i './seeds/user_preferences_seed.sql'
