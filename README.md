@@ -131,7 +131,7 @@ Please open an issue first to discuss major changes.
 
 ## License
 
-This project is licensed under the [MIT License](https://opensource.org/licenses/MIT). See the [LICENSE](LICENSE) file for details (if provided).
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
 
 ---
 
