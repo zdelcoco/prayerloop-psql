@@ -15,6 +15,7 @@
 \i './definitions/group_invite.sql'
 \i './definitions/preference.sql'
 \i './definitions/user_preferences.sql'
+\i './definitions/user_push_tokens.sql'
 
 -- seed the tables
 \i './seeds/user_profile_seed.sql'
