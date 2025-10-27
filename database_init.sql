@@ -16,6 +16,7 @@
 \i './definitions/preference.sql'
 \i './definitions/user_preferences.sql'
 \i './definitions/user_push_tokens.sql'
+\i './definitions/password_reset_tokens.sql'
 
 -- seed the tables
 \i './seeds/user_profile_seed.sql'
