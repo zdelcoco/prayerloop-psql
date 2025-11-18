@@ -3,17 +3,18 @@ INSERT INTO
     user_profile_id,
     group_profile_id,
     is_active,
+    group_display_sequence,
     updated_by,
     created_by
   )
 VALUES
-  (1, 1, TRUE, 1, 1),
-  (1, 2, TRUE, 1, 1),
-  (2, 1, TRUE, 1, 1),
-  (2, 3, TRUE, 1, 1),
-  (3, 2, TRUE, 1, 1),
-  (3, 4, TRUE, 1, 1),
-  (4, 1, TRUE, 1, 1),
-  (4, 5, TRUE, 1, 1),
-  (5, 2, TRUE, 1, 1),
-  (5, 3, TRUE, 1, 1);
+  (1, 1, TRUE, 0, 1, 1),
+  (1, 2, TRUE, 1, 1, 1),
+  (2, 1, TRUE, 0, 1, 1),
+  (2, 3, TRUE, 1, 1, 1),
+  (3, 2, TRUE, 0, 1, 1),
+  (3, 4, TRUE, 1, 1, 1),
+  (4, 1, TRUE, 0, 1, 1),
+  (4, 5, TRUE, 1, 1, 1),
+  (5, 2, TRUE, 0, 1, 1),
+  (5, 3, TRUE, 1, 1, 1);

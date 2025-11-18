@@ -1,16 +1,17 @@
 DROP TABLE IF EXISTS "user_group" CASCADE;
 
 CREATE TABLE IF NOT EXISTS "user_group" (
-    user_group_id SERIAL PRIMARY KEY, 
-    user_profile_id INT NOT NULL, 
-    group_profile_id INT NOT NULL, 
-    is_active BOOLEAN DEFAULT TRUE, 
+    user_group_id SERIAL PRIMARY KEY,
+    user_profile_id INT NOT NULL,
+    group_profile_id INT NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    group_display_sequence INTEGER DEFAULT 0 NOT NULL,
     datetime_create TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    datetime_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  
-    updated_by INT NOT NULL, 
+    datetime_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INT NOT NULL,
     created_by INT NOT NULL,
-    FOREIGN KEY (user_profile_id) REFERENCES "user_profile" (user_profile_id),  
-    FOREIGN KEY (group_profile_id) REFERENCES "group_profile" (group_profile_id) 
+    FOREIGN KEY (user_profile_id) REFERENCES "user_profile" (user_profile_id),
+    FOREIGN KEY (group_profile_id) REFERENCES "group_profile" (group_profile_id)
 );
 
 /*** comments ***/
@@ -19,6 +20,7 @@ COMMENT ON COLUMN "user_group".user_group_id IS 'Unique identifier for the user-
 COMMENT ON COLUMN "user_group".user_profile_id IS 'ID of the user participating in the group.';
 COMMENT ON COLUMN "user_group".group_profile_id IS 'ID of the group to which the user belongs.';
 COMMENT ON COLUMN "user_group".is_active IS 'Indicates if the user-group relationship is active.';
+COMMENT ON COLUMN "user_group".group_display_sequence IS 'User-defined display order for groups. Lower values appear first. Sequential integers (0, 1, 2...).';
 COMMENT ON COLUMN "user_group".datetime_create IS 'Timestamp when the record was created.';
 COMMENT ON COLUMN "user_group".datetime_update IS 'Timestamp when the record was last updated.';
 COMMENT ON COLUMN "user_group".updated_by IS 'User ID of the last updater of this record.';
@@ -26,6 +28,7 @@ COMMENT ON COLUMN "user_group".created_by IS 'User ID of the creator of this rec
 
 /*** indexes ***/
 CREATE UNIQUE INDEX IF NOT EXISTS idx_user_group_userid_groupid ON "user_group" (user_profile_id, group_profile_id);
+CREATE INDEX IF NOT EXISTS idx_user_group_display_sequence ON "user_group" (user_profile_id, group_display_sequence);
 
 /*** functions ***/
 CREATE OR REPLACE FUNCTION set_datetime_create()
