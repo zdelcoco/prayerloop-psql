@@ -106,6 +106,80 @@ After setup:
 
 ---
 
+## Git Workflow
+
+This repository follows a **Git Flow** branching strategy to maintain code quality and manage database schema changes.
+
+### Branch Structure
+
+- **`main`** - Production branch (production database schema)
+- **`develop`** - Integration branch for ongoing development
+- **`feature/*`** - Feature branches (created from `develop`)
+- **`fix/*`** - Bug fix branches (created from `develop`)
+- **`release/*`** - Release candidate branches (created from `develop`)
+
+### Development Workflow
+
+**1. Working on Schema Changes/Migrations:**
+
+```bash
+# Start from develop
+git checkout develop
+git pull origin develop
+
+# Create feature branch
+git checkout -b feature/add-categories-table
+
+# Create migration files, update schema
+git add migrations/
+git commit -m "Add categories table migration"
+git push -u origin feature/add-categories-table
+
+# Create Pull Request: feature/add-categories-table → develop
+# Merge via GitHub UI after review
+```
+
+**2. Creating a Release:**
+
+```bash
+# Create release branch from develop
+git checkout develop
+git pull origin develop
+git checkout -b release/v0.0.2
+
+# Final schema validation, version bumps
+git commit -m "Prepare database schema for v0.0.2"
+git push -u origin release/v0.0.2
+
+# Create Pull Request: release/v0.0.2 → main
+# Merge via GitHub UI
+
+# Tag the release
+git checkout main
+git pull origin main
+git tag -a v0.0.2 -m "Database schema v0.0.2"
+git push origin v0.0.2
+
+# Merge back to develop
+git checkout develop
+git merge main
+git push origin develop
+```
+
+### Branch Protection Rules
+
+- **`main`** - Requires pull request before merging (no direct pushes)
+- **`develop`** - Requires pull request before merging (no direct pushes)
+
+### Important Notes
+
+- **Test migrations locally** before creating PRs
+- **Coordinate schema changes** with backend team (same release cycle)
+- **Backwards compatibility** - ensure migrations don't break existing backend code
+- **Rollback plan** - always have a rollback migration ready for production changes
+
+---
+
 ## Other Repositories
 
 - [**prayerloop-backend**](https://github.com/zdelcoco/prayerloop-backend)  
