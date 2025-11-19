@@ -1,12 +1,13 @@
 DROP TABLE IF EXISTS "prayer_access" CASCADE;
 
 CREATE TABLE IF NOT EXISTS "prayer_access" (
-    prayer_access_id SERIAL PRIMARY KEY, 
+    prayer_access_id SERIAL PRIMARY KEY,
     prayer_id INT NOT NULL,
-    access_type VARCHAR(5) NOT NULL, 
+    access_type VARCHAR(5) NOT NULL,
     access_type_id INT NOT NULL,
+    display_sequence INTEGER DEFAULT 0 NOT NULL,
     datetime_create TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    datetime_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+    datetime_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by INT NOT NULL,
     updated_by INT NOT NULL,
     FOREIGN KEY (prayer_id) REFERENCES "prayer" (prayer_id)
@@ -18,6 +19,7 @@ COMMENT ON COLUMN "prayer_access".prayer_access_id IS 'Unique identifier for eac
 COMMENT ON COLUMN "prayer_access".prayer_id IS 'Foreign key referencing the prayer request.';
 COMMENT ON COLUMN "prayer_access".access_type IS 'Type of access (e.g., ''user'', ''group'').';
 COMMENT ON COLUMN "prayer_access".access_type_id IS 'ID value of the associated type (e.g., if access_type is user, then use user.user_profile_id value).';
+COMMENT ON COLUMN "prayer_access".display_sequence IS 'User-defined display order for prayers. Lower values appear first. Sequential integers (0, 1, 2...).';
 COMMENT ON COLUMN "prayer_access".datetime_create IS 'Timestamp when the record was created.';
 COMMENT ON COLUMN "prayer_access".datetime_update IS 'Timestamp when the record was last updated.';
 COMMENT ON COLUMN "prayer_access".created_by IS 'User ID of the creator of this record.';
@@ -26,6 +28,7 @@ COMMENT ON COLUMN "prayer_access".updated_by IS 'User ID of who last updated thi
 /*** indexes ***/
 CREATE UNIQUE INDEX IF NOT EXISTS idx_prayer_access_type_id ON "prayer_access" (prayer_id, access_type, access_type_id);
 CREATE INDEX IF NOT EXISTS idx_prayer_access_prayer_id ON "prayer_access" (prayer_id);
+CREATE INDEX IF NOT EXISTS idx_prayer_access_display_sequence ON "prayer_access" (access_type, access_type_id, display_sequence);
 
 /*** functions ***/
 CREATE OR REPLACE FUNCTION set_datetime_create()
