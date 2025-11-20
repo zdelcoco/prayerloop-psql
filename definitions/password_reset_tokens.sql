@@ -12,7 +12,7 @@ CREATE TABLE password_reset_tokens (
 
 /*** comments ***/
 COMMENT ON TABLE password_reset_tokens IS 'This table stores temporary codes for password reset requests.';
-COMMENT ON COLUMN password_reset_tokens.token_id IS 'Unique identifier for the password reset token record.';
+COMMENT ON COLUMN password_reset_tokens.password_reset_tokens_id IS 'Unique identifier for the password reset token record.';
 COMMENT ON COLUMN password_reset_tokens.user_profile_id IS 'ID of the user requesting password reset.';
 COMMENT ON COLUMN password_reset_tokens.code IS '6-digit verification code sent to user email.';
 COMMENT ON COLUMN password_reset_tokens.expires_at IS 'Timestamp when the code expires (typically 15 minutes from creation).';

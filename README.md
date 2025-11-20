@@ -44,6 +44,26 @@ You will not find application code here; instead, you’ll see references and in
 
 ---
 
+## Testing
+
+This repository includes comprehensive test coverage for schema validation and migrations.
+
+```bash
+# Run all tests
+make test
+
+# Run specific test suites
+make test-schema       # Schema validation tests
+make test-migrations   # Migration tests
+
+# See all available commands
+make help
+```
+
+See [README_TESTS.md](README_TESTS.md) for detailed testing documentation.
+
+---
+
 ## Setup Instructions
 
 1. **Clone the repository**:

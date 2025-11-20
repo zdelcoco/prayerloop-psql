@@ -1,0 +1,63 @@
+name: Database Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Wait for PostgreSQL
+      run: |
+        until pg_isready -h localhost -p 5432 -U postgres; do
+          echo "Waiting for postgres..."
+          sleep 2
+        done
+
+    - name: Run Schema Tests
+      env:
+        PGHOST: localhost
+        PGPORT: 5432
+        PGUSER: postgres
+        PGPASSWORD: postgres
+        PGDATABASE: postgres
+      run: |
+        chmod +x tests/test_schema.sh
+        ./tests/test_schema.sh
+
+    - name: Run Migration Tests
+      env:
+        PGHOST: localhost
+        PGPORT: 5432
+        PGUSER: postgres
+        PGPASSWORD: postgres
+        PGDATABASE: postgres
+      run: |
+        chmod +x tests/test_migrations.sh
+        ./tests/test_migrations.sh
+
+    - name: Test Summary
+      if: always()
+      run: |
+        echo "Database tests completed"

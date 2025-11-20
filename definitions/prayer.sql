@@ -19,12 +19,12 @@ CREATE TABLE IF NOT EXISTS "prayer" (
 /*** comments ***/
 COMMENT ON TABLE "prayer" IS 'This table stores information about prayer.';
 COMMENT ON COLUMN "prayer".prayer_id IS 'Unique identifier for each prayer request.';
-COMMENT ON COLUMN "prayer".type IS 'Type of prayer (e.g., request, praise).';
+COMMENT ON COLUMN "prayer".prayer_type IS 'Type of prayer (e.g., request, praise).';
 COMMENT ON COLUMN "prayer".title IS 'Title of the prayer request.';
-COMMENT ON COLUMN "prayer".description IS 'Detailed description of the prayer request.';
+COMMENT ON COLUMN "prayer".prayer_description IS 'Detailed description of the prayer request.';
 COMMENT ON COLUMN "prayer".is_private IS 'Indicates if the prayer request is private.';
 COMMENT ON COLUMN "prayer".is_answered IS 'Indicates if the prayer has been answered.';
-COMMENT ON COLUMN "prayer".priority IS 'Priority level of the prayer request.';
+COMMENT ON COLUMN "prayer".prayer_priority IS 'Priority level of the prayer request.';
 COMMENT ON COLUMN "prayer".datetime_answered IS 'Timestamp when the prayer was answered.';
 COMMENT ON COLUMN "prayer".datetime_create IS 'Timestamp when the record was created.';
 COMMENT ON COLUMN "prayer".datetime_update IS 'Timestamp when the record was last updated.';

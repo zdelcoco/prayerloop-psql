@@ -17,6 +17,8 @@
 \i './definitions/user_preferences.sql'
 \i './definitions/user_push_tokens.sql'
 \i './definitions/password_reset_tokens.sql'
+\i './definitions/prayer_category.sql'
+\i './definitions/prayer_category_item.sql'
 
 -- seed the tables
 \i './seeds/user_profile_seed.sql'
@@ -32,3 +34,5 @@
 \i './seeds/group_invite_seed.sql'
 \i './seeds/preference_seed.sql'
 \i './seeds/user_preferences_seed.sql'
+\i './seeds/prayer_category_seed.sql'
+\i './seeds/prayer_category_item_seed.sql'
