@@ -10,8 +10,13 @@ and this project uses a date-based versioning scheme: `[year].[month].[sequence]
 
 ### Planned
 
-- Category tables for prayer organization
 - Urgent prayer columns and tracking
+
+## [2025.11.4] - 2025-11-20
+
+- **Migration 006: Display Sequence Columns**
+
+- Category tables for prayer organization
 
 ## [2025.11.3] - 2025-11-19
 
