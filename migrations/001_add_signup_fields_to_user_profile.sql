@@ -2,13 +2,13 @@
 -- Date: 2025-07-29
 -- Description: Adds phone_number, email_verified, phone_verified, verification_token, and admin fields to support user signup flow
 
--- Add new columns to user_profile table
-ALTER TABLE "user_profile" 
-ADD COLUMN phone_number VARCHAR(20),
-ADD COLUMN email_verified BOOLEAN DEFAULT FALSE,
-ADD COLUMN phone_verified BOOLEAN DEFAULT FALSE, 
-ADD COLUMN verification_token VARCHAR(255),
-ADD COLUMN admin BOOLEAN DEFAULT FALSE;
+-- Add new columns to user_profile table (IF NOT EXISTS for idempotency)
+ALTER TABLE "user_profile"
+ADD COLUMN IF NOT EXISTS phone_number VARCHAR(20),
+ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS phone_verified BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS verification_token VARCHAR(255),
+ADD COLUMN IF NOT EXISTS admin BOOLEAN DEFAULT FALSE;
 
 -- Add indexes for new fields
 CREATE INDEX IF NOT EXISTS idx_user_profile_phone_number ON "user_profile" (phone_number);

@@ -3,10 +3,10 @@
 -- Description: Add display_sequence to prayer_access and group_display_sequence to user_group
 --              to allow users to customize the order of their prayers and groups
 
--- Add display_sequence to prayer_access table
+-- Add display_sequence to prayer_access table (IF NOT EXISTS for idempotency)
 -- This allows each user to order their prayers independently
 ALTER TABLE prayer_access
-ADD COLUMN display_sequence INTEGER DEFAULT 0 NOT NULL;
+ADD COLUMN IF NOT EXISTS display_sequence INTEGER DEFAULT 0 NOT NULL;
 
 -- Add comment for the new column
 COMMENT ON COLUMN prayer_access.display_sequence IS 'User-defined display order for prayers. Lower values appear first. Sequential integers (0, 1, 2...).';
@@ -15,10 +15,10 @@ COMMENT ON COLUMN prayer_access.display_sequence IS 'User-defined display order 
 CREATE INDEX IF NOT EXISTS idx_prayer_access_display_sequence
 ON prayer_access (access_type, access_type_id, display_sequence);
 
--- Add group_display_sequence to user_group table
+-- Add group_display_sequence to user_group table (IF NOT EXISTS for idempotency)
 -- This allows each user to order their groups independently
 ALTER TABLE user_group
-ADD COLUMN group_display_sequence INTEGER DEFAULT 0 NOT NULL;
+ADD COLUMN IF NOT EXISTS group_display_sequence INTEGER DEFAULT 0 NOT NULL;
 
 -- Add comment for the new column
 COMMENT ON COLUMN user_group.group_display_sequence IS 'User-defined display order for groups. Lower values appear first. Sequential integers (0, 1, 2...).';

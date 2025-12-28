@@ -6,6 +6,7 @@ INSERT INTO
     is_private,
     is_answered,
     prayer_priority,
+    prayer_subject_id,
     created_by,
     updated_by
   )
@@ -18,6 +19,7 @@ VALUES
     FALSE,
     1,
     1,
+    1,
     1
   ),
   (
@@ -27,6 +29,7 @@ VALUES
     FALSE,
     FALSE,
     2,
+    1,
     1,
     1
   ),
@@ -38,6 +41,7 @@ VALUES
     FALSE,
     3,
     1,
+    1,
     1
   ),
   (
@@ -47,6 +51,7 @@ VALUES
     FALSE,
     TRUE,
     0,
+    1,
     1,
     1
   ),
@@ -58,6 +63,7 @@ VALUES
     FALSE,
     2,
     1,
+    1,
     1
   ),
   (
@@ -67,6 +73,7 @@ VALUES
     TRUE,
     FALSE,
     1,
+    2,
     1,
     1
   ),
@@ -78,6 +85,7 @@ VALUES
     FALSE,
     2,
     1,
+    1,
     1
   ),
   (
@@ -86,6 +94,7 @@ VALUES
     'Praying for new job opportunities.',
     FALSE,
     FALSE,
+    3,
     3,
     1,
     1
@@ -98,6 +107,7 @@ VALUES
     FALSE,
     0,
     1,
+    1,
     1
   ),
   (
@@ -107,6 +117,7 @@ VALUES
     FALSE,
     FALSE,
     2,
+    1,
     1,
     1
   );
