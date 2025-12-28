@@ -43,7 +43,7 @@ jobs:
 
       - name: Install tbls
         run: |
-          curl -sL https://github.com/k1LoW/tbls/releases/download/v1.92.2/tbls_1.92.2_linux_amd64.tar.gz | tar xz
+          curl -sL https://github.com/k1LoW/tbls/releases/download/v1.92.2/tbls_v1.92.2_linux_amd64.tar.gz | tar xz
           sudo mv tbls /usr/local/bin/
 
       - name: Generate schema documentation via SSH tunnel
