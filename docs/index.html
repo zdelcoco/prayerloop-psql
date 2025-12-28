@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PrayerLoop Database Schema</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="PrayerLoop PostgreSQL Database Schema Documentation">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+
+  <!-- Docsify theme -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
+
+  <!-- Custom styles -->
+  <style>
+    :root {
+      --theme-color: #4a7c59;
+      --sidebar-width: 280px;
+      --sidebar-nav-link-color--active: #4a7c59;
+      --sidebar-nav-link-font-weight--active: bold;
+    }
+
+    /* Better table styling */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1em 0;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f5f5f5;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background-color: #fafafa;
+    }
+
+    /* ER diagram styling */
+    .mermaid {
+      background: #fefefe;
+      padding: 1em;
+      border-radius: 4px;
+      overflow-x: auto;
+      cursor: zoom-in;
+      transition: transform 0.2s;
+    }
+
+    .mermaid:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .mermaid::after {
+      content: '🔍 Click to open full size';
+      display: block;
+      text-align: center;
+      font-size: 0.8em;
+      color: #888;
+      margin-top: 0.5em;
+    }
+
+    /* Code block styling */
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">Loading...</div>
+
+  <!-- Mermaid - load BEFORE Docsify -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose'
+    });
+  </script>
+
+  <script>
+    window.$docsify = {
+      name: 'PrayerLoop DB',
+      repo: 'https://github.com/zdelcoco/prayerloop-psql',
+      loadSidebar: true,
+      subMaxLevel: 3,
+      auto2top: true,
+      search: {
+        placeholder: 'Search tables...',
+        noData: 'No results found',
+        depth: 3
+      },
+      pagination: {
+        previousText: 'Previous',
+        nextText: 'Next',
+        crossChapter: true
+      },
+      markdown: {
+        renderer: {
+          code: function(code, lang) {
+            if (lang === 'mermaid') {
+              return '<div class="mermaid">' + code + '</div>';
+            }
+            return this.origin.code.apply(this, arguments);
+          }
+        }
+      },
+      plugins: [
+        function(hook) {
+          hook.doneEach(function() {
+            mermaid.run({
+              querySelector: '.mermaid'
+            });
+          });
+        }
+      ]
+    }
+  </script>
+
+  <!-- Docsify core -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js"></script>
+
+  <!-- Plugins -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-pagination@2/dist/docsify-pagination.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code@2"></script>
+
+  <!-- Syntax highlighting -->
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-sql.min.js"></script>
+
+  <!-- Diagram open in new tab -->
+  <script>
+    (function() {
+      function setupDiagramClicks() {
+        document.querySelectorAll('.mermaid').forEach(function(diagram) {
+          if (diagram.dataset.zoomEnabled) return;
+          diagram.dataset.zoomEnabled = 'true';
+
+          diagram.addEventListener('click', function() {
+            const svg = diagram.querySelector('svg');
+            if (svg) {
+              // Clone and modify SVG to be scalable
+              const clonedSvg = svg.cloneNode(true);
+
+              // Get original dimensions for viewBox
+              const width = svg.getAttribute('width') || svg.getBoundingClientRect().width;
+              const height = svg.getAttribute('height') || svg.getBoundingClientRect().height;
+
+              // Set viewBox if not present, remove fixed dimensions
+              if (!clonedSvg.getAttribute('viewBox')) {
+                clonedSvg.setAttribute('viewBox', `0 0 ${parseFloat(width)} ${parseFloat(height)}`);
+              }
+              clonedSvg.removeAttribute('width');
+              clonedSvg.removeAttribute('height');
+              clonedSvg.removeAttribute('style');
+
+              const svgData = new XMLSerializer().serializeToString(clonedSvg);
+              const blob = new Blob([`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                  <title>ER Diagram</title>
+                  <style>
+                    body { margin: 20px; background: #f5f5f5; }
+                    svg {
+                      background: white;
+                      padding: 20px;
+                      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                      min-width: 1500px;
+                    }
+                  </style>
+                </head>
+                <body>
+                  <p style="color:#666; margin-bottom:10px;">Use Cmd/Ctrl + scroll to zoom, or Cmd/Ctrl +/- </p>
+                  ${svgData}
+                </body>
+                </html>
+              `], { type: 'text/html' });
+              const url = URL.createObjectURL(blob);
+              window.open(url, '_blank');
+            }
+          });
+        });
+      }
+
+      // Run after Docsify loads each page
+      if (window.$docsify && window.$docsify.plugins) {
+        window.$docsify.plugins.push(function(hook) {
+          hook.doneEach(function() {
+            setTimeout(setupDiagramClicks, 500);
+          });
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+name: Run Migrations & Update Schema Docs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'migrations/**'
+      - 'definitions/**'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  migrate-and-document:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run migrations via EC2
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_PUBLIC_IP: ${{ secrets.EC2_PUBLIC_IP }}
+          EC2_USER: ec2-user
+          PRAYERLOOP_DB_URL: ${{ secrets.PRAYERLOOP_DB_URL }}
+        run: |
+          # Prepare SSH key
+          echo "$EC2_SSH_KEY" > ec2_key.pem
+          chmod 600 ec2_key.pem
+
+          # Copy migration files to EC2
+          echo "Copying migration files to EC2..."
+          ssh -o StrictHostKeyChecking=no -i ec2_key.pem $EC2_USER@$EC2_PUBLIC_IP "mkdir -p ~/prayerloop-psql/migrations ~/prayerloop-psql/scripts"
+          scp -o StrictHostKeyChecking=no -i ec2_key.pem -r migrations/* $EC2_USER@$EC2_PUBLIC_IP:~/prayerloop-psql/migrations/
+          scp -o StrictHostKeyChecking=no -i ec2_key.pem scripts/run_migrations.sh $EC2_USER@$EC2_PUBLIC_IP:~/prayerloop-psql/scripts/
+
+          # Run migrations on EC2
+          echo "Running migrations..."
+          ssh -o StrictHostKeyChecking=no -i ec2_key.pem $EC2_USER@$EC2_PUBLIC_IP \
+            "export PRAYERLOOP_DB_URL='$PRAYERLOOP_DB_URL' && chmod +x ~/prayerloop-psql/scripts/run_migrations.sh && ~/prayerloop-psql/scripts/run_migrations.sh"
+
+      - name: Install tbls
+        run: |
+          curl -sL https://github.com/k1LoW/tbls/releases/download/v1.92.2/tbls_1.92.2_linux_amd64.tar.gz | tar xz
+          sudo mv tbls /usr/local/bin/
+
+      - name: Generate schema documentation via SSH tunnel
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_PUBLIC_IP: ${{ secrets.EC2_PUBLIC_IP }}
+          EC2_USER: ec2-user
+          PRAYERLOOP_DB_URL: ${{ secrets.PRAYERLOOP_DB_URL }}
+          RDS_HOST: ${{ secrets.RDS_HOST }}
+        run: |
+          # Prepare SSH key
+          echo "$EC2_SSH_KEY" > ec2_key.pem
+          chmod 600 ec2_key.pem
+
+          # Start SSH tunnel in background
+          echo "Starting SSH tunnel..."
+          ssh -o StrictHostKeyChecking=no -i ec2_key.pem -f -N -L 5433:$RDS_HOST:5432 $EC2_USER@$EC2_PUBLIC_IP
+          sleep 2
+
+          # Update connection URL to use tunnel
+          TUNNEL_URL=$(echo "$PRAYERLOOP_DB_URL" | sed "s|@[^/]*|@localhost:5433|")
+
+          # Generate docs
+          echo "Generating schema documentation..."
+          export PRAYERLOOP_DB_URL="$TUNNEL_URL"
+          tbls doc --force
+
+      - name: Commit and push updated docs
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          # Check if there are changes
+          if git diff --quiet docs/; then
+            echo "No changes to schema documentation."
+          else
+            git add docs/
+            git commit -m "docs: auto-update schema documentation
+
+          🤖 Generated with tbls after migration"
+            git push
+          fi
