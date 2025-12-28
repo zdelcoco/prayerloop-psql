@@ -1,0 +1,2412 @@
+{
+  "name": "prayerloop",
+  "tables": [
+    {
+      "name": "public.group_invite",
+      "type": "BASE TABLE",
+      "comment": "Group invitation codes",
+      "columns": [
+        {
+          "name": "created_by",
+          "type": "integer",
+          "nullable": false,
+          "comment": "User ID of the creator of the invite."
+        },
+        {
+          "name": "datetime_create",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the invite was created."
+        },
+        {
+          "name": "datetime_expires",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": "Timestamp when the invite expires."
+        },
+        {
+          "name": "datetime_update",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the invite was last updated."
+        },
+        {
+          "name": "group_invite_id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('group_invite_group_invite_id_seq'::regclass)",
+          "comment": "Unique identifier for the group invite."
+        },
+        {
+          "name": "group_profile_id",
+          "type": "integer",
+          "nullable": false,
+          "comment": "Unique identifier for the group."
+        },
+        {
+          "name": "invite_code",
+          "type": "varchar(50)",
+          "nullable": false,
+          "comment": "Unique code for the invite."
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "nullable": true,
+          "default": "true",
+          "comment": "Indicates if the invite is active.  Used for revoking invites."
+        },
+        {
+          "name": "updated_by",
+          "type": "integer",
+          "nullable": false,
+          "comment": "User ID of the last updater of the invite."
+        }
+      ],
+      "indexes": [
+        {
+          "name": "group_invite_invite_code_key",
+          "def": "CREATE UNIQUE INDEX group_invite_invite_code_key ON public.group_invite USING btree (invite_code)",
+          "table": "public.group_invite",
+          "columns": [
+            "invite_code"
+          ]
+        },
+        {
+          "name": "group_invite_pkey",
+          "def": "CREATE UNIQUE INDEX group_invite_pkey ON public.group_invite USING btree (group_invite_id)",
+          "table": "public.group_invite",
+          "columns": [
+            "group_invite_id"
+          ]
+        },
+        {
+          "name": "idx_group_invite_code",
+          "def": "CREATE UNIQUE INDEX idx_group_invite_code ON public.group_invite USING btree (invite_code)",
+          "table": "public.group_invite",
+          "columns": [
+            "invite_code"
+          ]
+        },
+        {
+          "name": "idx_group_invite_group_profile_id",
+          "def": "CREATE INDEX idx_group_invite_group_profile_id ON public.group_invite USING btree (group_profile_id)",
+          "table": "public.group_invite",
+          "columns": [
+            "group_profile_id"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "group_invite_group_profile_id_fkey",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (group_profile_id) REFERENCES group_profile(group_profile_id) ON DELETE CASCADE",
+          "table": "public.group_invite",
+          "referenced_table": "group_profile",
+          "columns": [
+            "group_profile_id"
+          ],
+          "referenced_columns": [
+            "group_profile_id"
+          ]
+        },
+        {
+          "name": "group_invite_invite_code_key",
+          "type": "UNIQUE",
+          "def": "UNIQUE (invite_code)",
+          "table": "public.group_invite",
+          "referenced_table": "",
+          "columns": [
+            "invite_code"
+          ]
+        },
+        {
+          "name": "group_invite_pkey",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (group_invite_id)",
+          "table": "public.group_invite",
+          "referenced_table": "",
+          "columns": [
+            "group_invite_id"
+          ]
+        }
+      ],
+      "triggers": [
+        {
+          "name": "set_datetime_create_trigger",
+          "def": "CREATE TRIGGER set_datetime_create_trigger BEFORE INSERT ON public.group_invite FOR EACH ROW EXECUTE FUNCTION set_datetime_create()"
+        },
+        {
+          "name": "set_datetime_expires_before_insert",
+          "def": "CREATE TRIGGER set_datetime_expires_before_insert BEFORE INSERT ON public.group_invite FOR EACH ROW EXECUTE FUNCTION set_default_datetime_expires()"
+        },
+        {
+          "name": "set_datetime_update",
+          "def": "CREATE TRIGGER set_datetime_update BEFORE UPDATE ON public.group_invite FOR EACH ROW EXECUTE FUNCTION update_datetime_update()"
+        }
+      ]
+    },
+    {
+      "name": "public.group_profile",
+      "type": "BASE TABLE",
+      "comment": "Prayer groups",
+      "columns": [
+        {
+          "name": "created_by",
+          "type": "integer",
+          "nullable": false,
+          "comment": "User ID of the creator of the group."
+        },
+        {
+          "name": "datetime_create",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the group was created."
+        },
+        {
+          "name": "datetime_update",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the group was last updated."
+        },
+        {
+          "name": "deleted",
+          "type": "boolean",
+          "nullable": true,
+          "default": "false",
+          "comment": "Indicates if the group has been marked as deleted."
+        },
+        {
+          "name": "group_description",
+          "type": "varchar(500)",
+          "nullable": true,
+          "comment": "Description of the group."
+        },
+        {
+          "name": "group_name",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "This field holds the name of the group."
+        },
+        {
+          "name": "group_profile_id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('group_profile_group_profile_id_seq'::regclass)",
+          "comment": "Unique identifier for the group."
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "nullable": true,
+          "default": "true",
+          "comment": "Indicates if the group is active."
+        },
+        {
+          "name": "updated_by",
+          "type": "integer",
+          "nullable": false,
+          "comment": "User ID of the last updater of the group."
+        }
+      ],
+      "indexes": [
+        {
+          "name": "group_profile_pkey",
+          "def": "CREATE UNIQUE INDEX group_profile_pkey ON public.group_profile USING btree (group_profile_id)",
+          "table": "public.group_profile",
+          "columns": [
+            "group_profile_id"
+          ]
+        },
+        {
+          "name": "idx_group_group_name",
+          "def": "CREATE UNIQUE INDEX idx_group_group_name ON public.group_profile USING btree (group_name, group_description)",
+          "table": "public.group_profile",
+          "columns": [
+            "group_name",
+            "group_description"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "group_profile_pkey",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (group_profile_id)",
+          "table": "public.group_profile",
+          "referenced_table": "",
+          "columns": [
+            "group_profile_id"
+          ]
+        }
+      ],
+      "triggers": [
+        {
+          "name": "set_datetime_create_trigger",
+          "def": "CREATE TRIGGER set_datetime_create_trigger BEFORE INSERT ON public.group_profile FOR EACH ROW EXECUTE FUNCTION set_datetime_create()"
+        },
+        {
+          "name": "set_datetime_update",
+          "def": "CREATE TRIGGER set_datetime_update BEFORE UPDATE ON public.group_profile FOR EACH ROW EXECUTE FUNCTION update_datetime_update()"
+        }
+      ]
+    },
+    {
+      "name": "public.notification",
+      "type": "BASE TABLE",
+      "comment": "User notifications",
+      "columns": [
+        {
+          "name": "created_by",
+          "type": "integer",
+          "nullable": false,
+          "comment": "User ID of the creator of this record."
+        },
+        {
+          "name": "datetime_create",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the notification was created."
+        },
+        {
+          "name": "datetime_update",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the notification was last updated."
+        },
+        {
+          "name": "notification_id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('notification_notification_id_seq'::regclass)",
+          "comment": "Unique identifier for each notification."
+        },
+        {
+          "name": "notification_message",
+          "type": "text",
+          "nullable": true,
+          "comment": "Content of the notification."
+        },
+        {
+          "name": "notification_status",
+          "type": "varchar(20)",
+          "nullable": true,
+          "default": "'UNREAD'::character varying",
+          "comment": "Status of the notification (e.g., read, unread)."
+        },
+        {
+          "name": "notification_type",
+          "type": "varchar(50)",
+          "nullable": false,
+          "comment": "Type of notification (e.g., invitation, prayer request)."
+        },
+        {
+          "name": "updated_by",
+          "type": "integer",
+          "nullable": false,
+          "comment": "User ID of the last updater of this record."
+        },
+        {
+          "name": "user_profile_id",
+          "type": "integer",
+          "nullable": false,
+          "comment": "ID of the user receiving the notification."
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_notification_notification_id",
+          "def": "CREATE INDEX idx_notification_notification_id ON public.notification USING btree (notification_id)",
+          "table": "public.notification",
+          "columns": [
+            "notification_id"
+          ]
+        },
+        {
+          "name": "idx_notification_user_status",
+          "def": "CREATE INDEX idx_notification_user_status ON public.notification USING btree (user_profile_id, notification_status)",
+          "table": "public.notification",
+          "columns": [
+            "user_profile_id",
+            "notification_status"
+          ]
+        },
+        {
+          "name": "idx_notification_user_type",
+          "def": "CREATE INDEX idx_notification_user_type ON public.notification USING btree (user_profile_id, notification_type)",
+          "table": "public.notification",
+          "columns": [
+            "user_profile_id",
+            "notification_type"
+          ]
+        },
+        {
+          "name": "notification_pkey",
+          "def": "CREATE UNIQUE INDEX notification_pkey ON public.notification USING btree (notification_id)",
+          "table": "public.notification",
+          "columns": [
+            "notification_id"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "notification_pkey",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (notification_id)",
+          "table": "public.notification",
+          "referenced_table": "",
+          "columns": [
+            "notification_id"
+          ]
+        },
+        {
+          "name": "notification_user_profile_id_fkey",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (user_profile_id) REFERENCES user_profile(user_profile_id)",
+          "table": "public.notification",
+          "referenced_table": "user_profile",
+          "columns": [
+            "user_profile_id"
+          ],
+          "referenced_columns": [
+            "user_profile_id"
+          ]
+        }
+      ],
+      "triggers": [
+        {
+          "name": "set_datetime_create_trigger",
+          "def": "CREATE TRIGGER set_datetime_create_trigger BEFORE INSERT ON public.notification FOR EACH ROW EXECUTE FUNCTION set_datetime_create()"
+        },
+        {
+          "name": "set_datetime_update",
+          "def": "CREATE TRIGGER set_datetime_update BEFORE UPDATE ON public.notification FOR EACH ROW EXECUTE FUNCTION update_datetime_update()"
+        }
+      ]
+    },
+    {
+      "name": "public.password_reset_tokens",
+      "type": "BASE TABLE",
+      "comment": "Password reset verification codes",
+      "columns": [
+        {
+          "name": "attempts",
+          "type": "integer",
+          "nullable": true,
+          "default": "0",
+          "comment": "Number of verification attempts (max 3 allowed)."
+        },
+        {
+          "name": "code",
+          "type": "varchar(6)",
+          "nullable": false,
+          "comment": "6-digit verification code sent to user email."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the reset code was created."
+        },
+        {
+          "name": "expires_at",
+          "type": "timestamp without time zone",
+          "nullable": false,
+          "comment": "Timestamp when the code expires (typically 15 minutes from creation)."
+        },
+        {
+          "name": "password_reset_tokens_id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('password_reset_tokens_password_reset_tokens_id_seq'::regclass)"
+        },
+        {
+          "name": "used",
+          "type": "boolean",
+          "nullable": true,
+          "default": "false",
+          "comment": "Indicates whether the code has been used (prevents reuse)."
+        },
+        {
+          "name": "user_profile_id",
+          "type": "integer",
+          "nullable": false,
+          "comment": "ID of the user requesting password reset."
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_password_reset_code",
+          "def": "CREATE INDEX idx_password_reset_code ON public.password_reset_tokens USING btree (code)",
+          "table": "public.password_reset_tokens",
+          "columns": [
+            "code"
+          ]
+        },
+        {
+          "name": "idx_password_reset_expires",
+          "def": "CREATE INDEX idx_password_reset_expires ON public.password_reset_tokens USING btree (expires_at)",
+          "table": "public.password_reset_tokens",
+          "columns": [
+            "expires_at"
+          ]
+        },
+        {
+          "name": "idx_password_reset_user",
+          "def": "CREATE INDEX idx_password_reset_user ON public.password_reset_tokens USING btree (user_profile_id)",
+          "table": "public.password_reset_tokens",
+          "columns": [
+            "user_profile_id"
+          ]
+        },
+        {
+          "name": "password_reset_tokens_pkey",
+          "def": "CREATE UNIQUE INDEX password_reset_tokens_pkey ON public.password_reset_tokens USING btree (password_reset_tokens_id)",
+          "table": "public.password_reset_tokens",
+          "columns": [
+            "password_reset_tokens_id"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "password_reset_tokens_pkey",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (password_reset_tokens_id)",
+          "table": "public.password_reset_tokens",
+          "referenced_table": "",
+          "columns": [
+            "password_reset_tokens_id"
+          ]
+        },
+        {
+          "name": "password_reset_tokens_user_profile_id_fkey",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (user_profile_id) REFERENCES user_profile(user_profile_id) ON DELETE CASCADE",
+          "table": "public.password_reset_tokens",
+          "referenced_table": "user_profile",
+          "columns": [
+            "user_profile_id"
+          ],
+          "referenced_columns": [
+            "user_profile_id"
+          ]
+        }
+      ],
+      "triggers": [
+        {
+          "name": "set_password_reset_tokens_created_at",
+          "def": "CREATE TRIGGER set_password_reset_tokens_created_at BEFORE INSERT ON public.password_reset_tokens FOR EACH ROW EXECUTE FUNCTION set_password_reset_tokens_created_at()"
+        }
+      ]
+    },
+    {
+      "name": "public.prayer",
+      "type": "BASE TABLE",
+      "comment": "Individual prayer requests",
+      "columns": [
+        {
+          "name": "created_by",
+          "type": "integer",
+          "nullable": false,
+          "comment": "User ID of the creator of this record."
+        },
+        {
+          "name": "datetime_answered",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": "Timestamp when the prayer was answered."
+        },
+        {
+          "name": "datetime_create",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the record was created."
+        },
+        {
+          "name": "datetime_update",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the record was last updated."
+        },
+        {
+          "name": "deleted",
+          "type": "boolean",
+          "nullable": true,
+          "default": "false",
+          "comment": "Indicates if the prayer request has been marked as deleted."
+        },
+        {
+          "name": "is_answered",
+          "type": "boolean",
+          "nullable": true,
+          "default": "false",
+          "comment": "Indicates if the prayer has been answered."
+        },
+        {
+          "name": "is_private",
+          "type": "boolean",
+          "nullable": true,
+          "default": "false",
+          "comment": "Indicates if the prayer request is private."
+        },
+        {
+          "name": "prayer_description",
+          "type": "varchar(3000)",
+          "nullable": true
+        },
+        {
+          "name": "prayer_id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('prayer_prayer_id_seq'::regclass)",
+          "comment": "Unique identifier for each prayer request."
+        },
+        {
+          "name": "prayer_priority",
+          "type": "integer",
+          "nullable": true,
+          "default": "0"
+        },
+        {
+          "name": "prayer_type",
+          "type": "varchar(20)",
+          "nullable": false
+        },
+        {
+          "name": "title",
+          "type": "varchar(250)",
+          "nullable": false,
+          "comment": "Title of the prayer request."
+        },
+        {
+          "name": "updated_by",
+          "type": "integer",
+          "nullable": false,
+          "comment": "User ID of who last updated this record."
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_prayer_created_by",
+          "def": "CREATE INDEX idx_prayer_created_by ON public.prayer USING btree (created_by)",
+          "table": "public.prayer",
+          "columns": [
+            "created_by"
+          ]
+        },
+        {
+          "name": "prayer_pkey",
+          "def": "CREATE UNIQUE INDEX prayer_pkey ON public.prayer USING btree (prayer_id)",
+          "table": "public.prayer",
+          "columns": [
+            "prayer_id"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "prayer_pkey",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (prayer_id)",
+          "table": "public.prayer",
+          "referenced_table": "",
+          "columns": [
+            "prayer_id"
+          ]
+        }
+      ],
+      "triggers": [
+        {
+          "name": "set_datetime_create_trigger",
+          "def": "CREATE TRIGGER set_datetime_create_trigger BEFORE INSERT ON public.prayer FOR EACH ROW EXECUTE FUNCTION set_datetime_create()"
+        },
+        {
+          "name": "set_datetime_update",
+          "def": "CREATE TRIGGER set_datetime_update BEFORE UPDATE ON public.prayer FOR EACH ROW EXECUTE FUNCTION update_datetime_update()"
+        }
+      ]
+    },
+    {
+      "name": "public.prayer_access",
+      "type": "BASE TABLE",
+      "comment": "Controls prayer visibility and sharing",
+      "columns": [
+        {
+          "name": "access_type",
+          "type": "varchar(5)",
+          "nullable": false,
+          "comment": "Type of access (e.g., 'user', 'group')."
+        },
+        {
+          "name": "access_type_id",
+          "type": "integer",
+          "nullable": false,
+          "comment": "ID value of the associated type (e.g., if access_type is user, then use user.user_profile_id value)."
+        },
+        {
+          "name": "created_by",
+          "type": "integer",
+          "nullable": false,
+          "comment": "User ID of the creator of this record."
+        },
+        {
+          "name": "datetime_create",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the record was created."
+        },
+        {
+          "name": "datetime_update",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the record was last updated."
+        },
+        {
+          "name": "display_sequence",
+          "type": "integer",
+          "nullable": false,
+          "default": "0",
+          "comment": "User-defined display order for prayers. Lower values appear first. Sequential integers (0, 1, 2...)."
+        },
+        {
+          "name": "prayer_access_id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('prayer_access_prayer_access_id_seq'::regclass)",
+          "comment": "Unique identifier for each prayer access record."
+        },
+        {
+          "name": "prayer_id",
+          "type": "integer",
+          "nullable": false,
+          "comment": "Foreign key referencing the prayer request."
+        },
+        {
+          "name": "updated_by",
+          "type": "integer",
+          "nullable": false,
+          "comment": "User ID of who last updated this record."
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_prayer_access_display_sequence",
+          "def": "CREATE INDEX idx_prayer_access_display_sequence ON public.prayer_access USING btree (access_type, access_type_id, display_sequence)",
+          "table": "public.prayer_access",
+          "columns": [
+            "access_type",
+            "access_type_id",
+            "display_sequence"
+          ]
+        },
+        {
+          "name": "idx_prayer_access_prayer_id",
+          "def": "CREATE INDEX idx_prayer_access_prayer_id ON public.prayer_access USING btree (prayer_id)",
+          "table": "public.prayer_access",
+          "columns": [
+            "prayer_id"
+          ]
+        },
+        {
+          "name": "idx_prayer_access_type_id",
+          "def": "CREATE UNIQUE INDEX idx_prayer_access_type_id ON public.prayer_access USING btree (prayer_id, access_type, access_type_id)",
+          "table": "public.prayer_access",
+          "columns": [
+            "prayer_id",
+            "access_type",
+            "access_type_id"
+          ]
+        },
+        {
+          "name": "prayer_access_pkey",
+          "def": "CREATE UNIQUE INDEX prayer_access_pkey ON public.prayer_access USING btree (prayer_access_id)",
+          "table": "public.prayer_access",
+          "columns": [
+            "prayer_access_id"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "prayer_access_pkey",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (prayer_access_id)",
+          "table": "public.prayer_access",
+          "referenced_table": "",
+          "columns": [
+            "prayer_access_id"
+          ]
+        },
+        {
+          "name": "prayer_access_prayer_id_fkey",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (prayer_id) REFERENCES prayer(prayer_id)",
+          "table": "public.prayer_access",
+          "referenced_table": "prayer",
+          "columns": [
+            "prayer_id"
+          ],
+          "referenced_columns": [
+            "prayer_id"
+          ]
+        }
+      ],
+      "triggers": [
+        {
+          "name": "set_datetime_create_trigger",
+          "def": "CREATE TRIGGER set_datetime_create_trigger BEFORE INSERT ON public.prayer_access FOR EACH ROW EXECUTE FUNCTION set_datetime_create()"
+        },
+        {
+          "name": "set_datetime_update",
+          "def": "CREATE TRIGGER set_datetime_update BEFORE UPDATE ON public.prayer_access FOR EACH ROW EXECUTE FUNCTION update_datetime_update()"
+        }
+      ]
+    },
+    {
+      "name": "public.prayer_analytics",
+      "type": "BASE TABLE",
+      "comment": "Prayer interaction tracking",
+      "columns": [
+        {
+          "name": "datetime_last_prayed",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": "Timestamp of the last time this prayer was prayed."
+        },
+        {
+          "name": "last_prayed_by",
+          "type": "integer",
+          "nullable": true,
+          "comment": "User ID of the last user who prayed for this request."
+        },
+        {
+          "name": "num_shares",
+          "type": "integer",
+          "nullable": true,
+          "default": "0",
+          "comment": "Number of times this prayer request has been shared."
+        },
+        {
+          "name": "num_unique_users",
+          "type": "integer",
+          "nullable": true,
+          "default": "0",
+          "comment": "Number of unique users who have prayed for this request."
+        },
+        {
+          "name": "prayer_analytics_id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('prayer_analytics_prayer_analytics_id_seq'::regclass)",
+          "comment": "Unique identifier for each prayer analytics record."
+        },
+        {
+          "name": "prayer_id",
+          "type": "integer",
+          "nullable": false,
+          "comment": "Foreign key referencing the associated prayer request."
+        },
+        {
+          "name": "total_prayers",
+          "type": "integer",
+          "nullable": true,
+          "default": "0",
+          "comment": "Total number of prayers for this request."
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_prayer_analytics_prayer_id",
+          "def": "CREATE INDEX idx_prayer_analytics_prayer_id ON public.prayer_analytics USING btree (prayer_id)",
+          "table": "public.prayer_analytics",
+          "columns": [
+            "prayer_id"
+          ]
+        },
+        {
+          "name": "prayer_analytics_pkey",
+          "def": "CREATE UNIQUE INDEX prayer_analytics_pkey ON public.prayer_analytics USING btree (prayer_analytics_id)",
+          "table": "public.prayer_analytics",
+          "columns": [
+            "prayer_analytics_id"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "prayer_analytics_pkey",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (prayer_analytics_id)",
+          "table": "public.prayer_analytics",
+          "referenced_table": "",
+          "columns": [
+            "prayer_analytics_id"
+          ]
+        },
+        {
+          "name": "prayer_analytics_prayer_id_fkey",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (prayer_id) REFERENCES prayer(prayer_id)",
+          "table": "public.prayer_analytics",
+          "referenced_table": "prayer",
+          "columns": [
+            "prayer_id"
+          ],
+          "referenced_columns": [
+            "prayer_id"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "public.prayer_category",
+      "type": "BASE TABLE",
+      "comment": "Prayer category definitions",
+      "columns": [
+        {
+          "name": "category_color",
+          "type": "varchar(20)",
+          "nullable": true,
+          "comment": "Hex color code for visual distinction (e.g., '#90c590')."
+        },
+        {
+          "name": "category_name",
+          "type": "varchar(100)",
+          "nullable": false,
+          "comment": "Name of the category (e.g., 'Family', 'Work', 'Health')."
+        },
+        {
+          "name": "category_type",
+          "type": "varchar(5)",
+          "nullable": false,
+          "comment": "Type of category ('user' for personal categories, 'group' for shared group categories)."
+        },
+        {
+          "name": "category_type_id",
+          "type": "integer",
+          "nullable": false,
+          "comment": "ID value of the associated type (e.g., if category_type is user, then user_profile_id; if group, then group_profile_id)."
+        },
+        {
+          "name": "created_by",
+          "type": "integer",
+          "nullable": false,
+          "comment": "User ID of the creator of this category."
+        },
+        {
+          "name": "datetime_create",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the category was created."
+        },
+        {
+          "name": "datetime_update",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the category was last updated."
+        },
+        {
+          "name": "display_sequence",
+          "type": "integer",
+          "nullable": false,
+          "default": "0",
+          "comment": "User-defined display order for categories. Lower values appear first. Sequential integers (0, 1, 2...)."
+        },
+        {
+          "name": "prayer_category_id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('prayer_category_prayer_category_id_seq'::regclass)",
+          "comment": "Unique identifier for each category."
+        },
+        {
+          "name": "updated_by",
+          "type": "integer",
+          "nullable": false,
+          "comment": "User ID of who last updated this category."
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_prayer_category_display_sequence",
+          "def": "CREATE INDEX idx_prayer_category_display_sequence ON public.prayer_category USING btree (category_type, category_type_id, display_sequence)",
+          "table": "public.prayer_category",
+          "columns": [
+            "category_type",
+            "category_type_id",
+            "display_sequence"
+          ]
+        },
+        {
+          "name": "idx_prayer_category_type_id",
+          "def": "CREATE INDEX idx_prayer_category_type_id ON public.prayer_category USING btree (category_type, category_type_id)",
+          "table": "public.prayer_category",
+          "columns": [
+            "category_type",
+            "category_type_id"
+          ]
+        },
+        {
+          "name": "idx_unique_prayer_category_name",
+          "def": "CREATE UNIQUE INDEX idx_unique_prayer_category_name ON public.prayer_category USING btree (category_type, category_type_id, lower((category_name)::text))",
+          "table": "public.prayer_category",
+          "columns": [
+            "category_type",
+            "category_type_id",
+            "lower"
+          ]
+        },
+        {
+          "name": "prayer_category_pkey",
+          "def": "CREATE UNIQUE INDEX prayer_category_pkey ON public.prayer_category USING btree (prayer_category_id)",
+          "table": "public.prayer_category",
+          "columns": [
+            "prayer_category_id"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "chk_category_type",
+          "type": "CHECK",
+          "def": "CHECK (((category_type)::text = ANY ((ARRAY['user'::character varying, 'group'::character varying])::text[])))",
+          "table": "public.prayer_category",
+          "referenced_table": "",
+          "columns": [
+            "category_type"
+          ]
+        },
+        {
+          "name": "prayer_category_pkey",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (prayer_category_id)",
+          "table": "public.prayer_category",
+          "referenced_table": "",
+          "columns": [
+            "prayer_category_id"
+          ]
+        }
+      ],
+      "triggers": [
+        {
+          "name": "set_datetime_create_trigger",
+          "def": "CREATE TRIGGER set_datetime_create_trigger BEFORE INSERT ON public.prayer_category FOR EACH ROW EXECUTE FUNCTION set_datetime_create()"
+        },
+        {
+          "name": "set_datetime_update",
+          "def": "CREATE TRIGGER set_datetime_update BEFORE UPDATE ON public.prayer_category FOR EACH ROW EXECUTE FUNCTION update_datetime_update()"
+        }
+      ]
+    },
+    {
+      "name": "public.prayer_category_item",
+      "type": "BASE TABLE",
+      "comment": "Prayers assigned to categories",
+      "columns": [
+        {
+          "name": "created_by",
+          "type": "integer",
+          "nullable": false,
+          "comment": "User ID who assigned the prayer to this category."
+        },
+        {
+          "name": "datetime_create",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the prayer was added to the category."
+        },
+        {
+          "name": "prayer_access_id",
+          "type": "integer",
+          "nullable": false,
+          "comment": "Foreign key referencing the prayer access record."
+        },
+        {
+          "name": "prayer_category_id",
+          "type": "integer",
+          "nullable": false,
+          "comment": "Foreign key referencing the prayer category."
+        },
+        {
+          "name": "prayer_category_item_id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('prayer_category_item_prayer_category_item_id_seq'::regclass)",
+          "comment": "Unique identifier for each category-prayer relationship."
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_prayer_category_item_access_id",
+          "def": "CREATE INDEX idx_prayer_category_item_access_id ON public.prayer_category_item USING btree (prayer_access_id)",
+          "table": "public.prayer_category_item",
+          "columns": [
+            "prayer_access_id"
+          ]
+        },
+        {
+          "name": "idx_prayer_category_item_category_id",
+          "def": "CREATE INDEX idx_prayer_category_item_category_id ON public.prayer_category_item USING btree (prayer_category_id)",
+          "table": "public.prayer_category_item",
+          "columns": [
+            "prayer_category_id"
+          ]
+        },
+        {
+          "name": "prayer_category_item_pkey",
+          "def": "CREATE UNIQUE INDEX prayer_category_item_pkey ON public.prayer_category_item USING btree (prayer_category_item_id)",
+          "table": "public.prayer_category_item",
+          "columns": [
+            "prayer_category_item_id"
+          ]
+        },
+        {
+          "name": "unique_prayer_category",
+          "def": "CREATE UNIQUE INDEX unique_prayer_category ON public.prayer_category_item USING btree (prayer_access_id)",
+          "table": "public.prayer_category_item",
+          "columns": [
+            "prayer_access_id"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "prayer_category_item_pkey",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (prayer_category_item_id)",
+          "table": "public.prayer_category_item",
+          "referenced_table": "",
+          "columns": [
+            "prayer_category_item_id"
+          ]
+        },
+        {
+          "name": "prayer_category_item_prayer_access_id_fkey",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (prayer_access_id) REFERENCES prayer_access(prayer_access_id) ON DELETE CASCADE",
+          "table": "public.prayer_category_item",
+          "referenced_table": "prayer_access",
+          "columns": [
+            "prayer_access_id"
+          ],
+          "referenced_columns": [
+            "prayer_access_id"
+          ]
+        },
+        {
+          "name": "prayer_category_item_prayer_category_id_fkey",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (prayer_category_id) REFERENCES prayer_category(prayer_category_id) ON DELETE CASCADE",
+          "table": "public.prayer_category_item",
+          "referenced_table": "prayer_category",
+          "columns": [
+            "prayer_category_id"
+          ],
+          "referenced_columns": [
+            "prayer_category_id"
+          ]
+        },
+        {
+          "name": "unique_prayer_category",
+          "type": "UNIQUE",
+          "def": "UNIQUE (prayer_access_id)",
+          "table": "public.prayer_category_item",
+          "referenced_table": "",
+          "columns": [
+            "prayer_access_id"
+          ]
+        }
+      ],
+      "triggers": [
+        {
+          "name": "set_datetime_create_trigger",
+          "def": "CREATE TRIGGER set_datetime_create_trigger BEFORE INSERT ON public.prayer_category_item FOR EACH ROW EXECUTE FUNCTION set_datetime_create()"
+        }
+      ]
+    },
+    {
+      "name": "public.prayer_session",
+      "type": "BASE TABLE",
+      "comment": "Prayer session tracking",
+      "columns": [
+        {
+          "name": "end_time",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": "Timestamp when the prayer session ends (optional)."
+        },
+        {
+          "name": "prayer_session_id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('prayer_session_prayer_session_id_seq'::regclass)",
+          "comment": "Unique identifier for each prayer session."
+        },
+        {
+          "name": "start_time",
+          "type": "timestamp without time zone",
+          "nullable": false,
+          "comment": "Timestamp when the prayer session starts."
+        },
+        {
+          "name": "user_profile_id",
+          "type": "integer",
+          "nullable": false,
+          "comment": "Foreign key referencing the user participating in the prayer session."
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_prayer_session_user_profile_id",
+          "def": "CREATE INDEX idx_prayer_session_user_profile_id ON public.prayer_session USING btree (user_profile_id)",
+          "table": "public.prayer_session",
+          "columns": [
+            "user_profile_id"
+          ]
+        },
+        {
+          "name": "prayer_session_pkey",
+          "def": "CREATE UNIQUE INDEX prayer_session_pkey ON public.prayer_session USING btree (prayer_session_id)",
+          "table": "public.prayer_session",
+          "columns": [
+            "prayer_session_id"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "prayer_session_pkey",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (prayer_session_id)",
+          "table": "public.prayer_session",
+          "referenced_table": "",
+          "columns": [
+            "prayer_session_id"
+          ]
+        },
+        {
+          "name": "prayer_session_user_profile_id_fkey",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (user_profile_id) REFERENCES user_profile(user_profile_id)",
+          "table": "public.prayer_session",
+          "referenced_table": "user_profile",
+          "columns": [
+            "user_profile_id"
+          ],
+          "referenced_columns": [
+            "user_profile_id"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "public.prayer_session_detail",
+      "type": "BASE TABLE",
+      "comment": "Individual prayers within a session",
+      "columns": [
+        {
+          "name": "end_time",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": "Timestamp when the prayer session detail ends (optional)."
+        },
+        {
+          "name": "prayer_id",
+          "type": "integer",
+          "nullable": false,
+          "comment": "Foreign key referencing the associated prayer request."
+        },
+        {
+          "name": "prayer_session_detail_id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('prayer_session_detail_prayer_session_detail_id_seq'::regclass)",
+          "comment": "Unique identifier for each prayer session detail record."
+        },
+        {
+          "name": "prayer_session_id",
+          "type": "integer",
+          "nullable": false,
+          "comment": "Foreign key referencing the associated prayer session."
+        },
+        {
+          "name": "start_time",
+          "type": "timestamp without time zone",
+          "nullable": false,
+          "comment": "Timestamp when the prayer session detail starts."
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_prayer_session_detail_prayer_id",
+          "def": "CREATE INDEX idx_prayer_session_detail_prayer_id ON public.prayer_session_detail USING btree (prayer_id)",
+          "table": "public.prayer_session_detail",
+          "columns": [
+            "prayer_id"
+          ]
+        },
+        {
+          "name": "idx_prayer_session_detail_prayer_session_id",
+          "def": "CREATE INDEX idx_prayer_session_detail_prayer_session_id ON public.prayer_session_detail USING btree (prayer_session_id)",
+          "table": "public.prayer_session_detail",
+          "columns": [
+            "prayer_session_id"
+          ]
+        },
+        {
+          "name": "prayer_session_detail_pkey",
+          "def": "CREATE UNIQUE INDEX prayer_session_detail_pkey ON public.prayer_session_detail USING btree (prayer_session_detail_id)",
+          "table": "public.prayer_session_detail",
+          "columns": [
+            "prayer_session_detail_id"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "prayer_session_detail_pkey",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (prayer_session_detail_id)",
+          "table": "public.prayer_session_detail",
+          "referenced_table": "",
+          "columns": [
+            "prayer_session_detail_id"
+          ]
+        },
+        {
+          "name": "prayer_session_detail_prayer_id_fkey",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (prayer_id) REFERENCES prayer(prayer_id)",
+          "table": "public.prayer_session_detail",
+          "referenced_table": "prayer",
+          "columns": [
+            "prayer_id"
+          ],
+          "referenced_columns": [
+            "prayer_id"
+          ]
+        },
+        {
+          "name": "prayer_session_detail_prayer_session_id_fkey",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (prayer_session_id) REFERENCES prayer_session(prayer_session_id)",
+          "table": "public.prayer_session_detail",
+          "referenced_table": "prayer_session",
+          "columns": [
+            "prayer_session_id"
+          ],
+          "referenced_columns": [
+            "prayer_session_id"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "public.preference",
+      "type": "BASE TABLE",
+      "comment": "System preference definitions",
+      "columns": [
+        {
+          "name": "created_by",
+          "type": "integer",
+          "nullable": false,
+          "default": "1"
+        },
+        {
+          "name": "datetime_create",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        {
+          "name": "datetime_update",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        {
+          "name": "default_value",
+          "type": "varchar(500)",
+          "nullable": false,
+          "comment": "Default value for this preference."
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "nullable": true,
+          "comment": "Human-readable description of what this preference controls."
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "nullable": true,
+          "default": "true",
+          "comment": "Whether this preference is currently active/available."
+        },
+        {
+          "name": "preference_id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('preference_preference_id_seq'::regclass)"
+        },
+        {
+          "name": "preference_key",
+          "type": "varchar(100)",
+          "nullable": false,
+          "comment": "Unique key identifying the preference (e.g., notifications, theme)."
+        },
+        {
+          "name": "updated_by",
+          "type": "integer",
+          "nullable": false,
+          "default": "1"
+        },
+        {
+          "name": "value_type",
+          "type": "varchar(50)",
+          "nullable": false,
+          "default": "'string'::character varying",
+          "comment": "Data type of the preference value (string, boolean, number)."
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_preference_active",
+          "def": "CREATE INDEX idx_preference_active ON public.preference USING btree (is_active)",
+          "table": "public.preference",
+          "columns": [
+            "is_active"
+          ]
+        },
+        {
+          "name": "idx_preference_key",
+          "def": "CREATE UNIQUE INDEX idx_preference_key ON public.preference USING btree (preference_key)",
+          "table": "public.preference",
+          "columns": [
+            "preference_key"
+          ]
+        },
+        {
+          "name": "preference_pkey",
+          "def": "CREATE UNIQUE INDEX preference_pkey ON public.preference USING btree (preference_id)",
+          "table": "public.preference",
+          "columns": [
+            "preference_id"
+          ]
+        },
+        {
+          "name": "preference_preference_key_key",
+          "def": "CREATE UNIQUE INDEX preference_preference_key_key ON public.preference USING btree (preference_key)",
+          "table": "public.preference",
+          "columns": [
+            "preference_key"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "preference_pkey",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (preference_id)",
+          "table": "public.preference",
+          "referenced_table": "",
+          "columns": [
+            "preference_id"
+          ]
+        },
+        {
+          "name": "preference_preference_key_key",
+          "type": "UNIQUE",
+          "def": "UNIQUE (preference_key)",
+          "table": "public.preference",
+          "referenced_table": "",
+          "columns": [
+            "preference_key"
+          ]
+        }
+      ],
+      "triggers": [
+        {
+          "name": "set_datetime_create_preference_trigger",
+          "def": "CREATE TRIGGER set_datetime_create_preference_trigger BEFORE INSERT ON public.preference FOR EACH ROW EXECUTE FUNCTION set_datetime_create()"
+        },
+        {
+          "name": "set_datetime_update_preference_trigger",
+          "def": "CREATE TRIGGER set_datetime_update_preference_trigger BEFORE UPDATE ON public.preference FOR EACH ROW EXECUTE FUNCTION update_datetime_update()"
+        }
+      ]
+    },
+    {
+      "name": "public.user_group",
+      "type": "BASE TABLE",
+      "comment": "User-to-group membership",
+      "columns": [
+        {
+          "name": "created_by",
+          "type": "integer",
+          "nullable": false,
+          "comment": "User ID of the creator of this record."
+        },
+        {
+          "name": "datetime_create",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the record was created."
+        },
+        {
+          "name": "datetime_update",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the record was last updated."
+        },
+        {
+          "name": "group_display_sequence",
+          "type": "integer",
+          "nullable": false,
+          "default": "0",
+          "comment": "User-defined display order for groups. Lower values appear first. Sequential integers (0, 1, 2...)."
+        },
+        {
+          "name": "group_profile_id",
+          "type": "integer",
+          "nullable": false,
+          "comment": "ID of the group to which the user belongs."
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "nullable": true,
+          "default": "true",
+          "comment": "Indicates if the user-group relationship is active."
+        },
+        {
+          "name": "updated_by",
+          "type": "integer",
+          "nullable": false,
+          "comment": "User ID of the last updater of this record."
+        },
+        {
+          "name": "user_group_id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('user_group_user_group_id_seq'::regclass)",
+          "comment": "Unique identifier for the user-group relationship."
+        },
+        {
+          "name": "user_profile_id",
+          "type": "integer",
+          "nullable": false,
+          "comment": "ID of the user participating in the group."
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_user_group_display_sequence",
+          "def": "CREATE INDEX idx_user_group_display_sequence ON public.user_group USING btree (user_profile_id, group_display_sequence)",
+          "table": "public.user_group",
+          "columns": [
+            "user_profile_id",
+            "group_display_sequence"
+          ]
+        },
+        {
+          "name": "idx_user_group_userid_groupid",
+          "def": "CREATE UNIQUE INDEX idx_user_group_userid_groupid ON public.user_group USING btree (user_profile_id, group_profile_id)",
+          "table": "public.user_group",
+          "columns": [
+            "user_profile_id",
+            "group_profile_id"
+          ]
+        },
+        {
+          "name": "user_group_pkey",
+          "def": "CREATE UNIQUE INDEX user_group_pkey ON public.user_group USING btree (user_group_id)",
+          "table": "public.user_group",
+          "columns": [
+            "user_group_id"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "user_group_group_profile_id_fkey",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (group_profile_id) REFERENCES group_profile(group_profile_id)",
+          "table": "public.user_group",
+          "referenced_table": "group_profile",
+          "columns": [
+            "group_profile_id"
+          ],
+          "referenced_columns": [
+            "group_profile_id"
+          ]
+        },
+        {
+          "name": "user_group_pkey",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (user_group_id)",
+          "table": "public.user_group",
+          "referenced_table": "",
+          "columns": [
+            "user_group_id"
+          ]
+        },
+        {
+          "name": "user_group_user_profile_id_fkey",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (user_profile_id) REFERENCES user_profile(user_profile_id)",
+          "table": "public.user_group",
+          "referenced_table": "user_profile",
+          "columns": [
+            "user_profile_id"
+          ],
+          "referenced_columns": [
+            "user_profile_id"
+          ]
+        }
+      ],
+      "triggers": [
+        {
+          "name": "set_datetime_create_trigger",
+          "def": "CREATE TRIGGER set_datetime_create_trigger BEFORE INSERT ON public.user_group FOR EACH ROW EXECUTE FUNCTION set_datetime_create()"
+        },
+        {
+          "name": "set_datetime_update",
+          "def": "CREATE TRIGGER set_datetime_update BEFORE UPDATE ON public.user_group FOR EACH ROW EXECUTE FUNCTION update_datetime_update()"
+        }
+      ]
+    },
+    {
+      "name": "public.user_preferences",
+      "type": "BASE TABLE",
+      "comment": "User-specific preference values",
+      "columns": [
+        {
+          "name": "datetime_create",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the preference was created."
+        },
+        {
+          "name": "datetime_update",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the preference was last updated."
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "nullable": true,
+          "default": "true",
+          "comment": "Indicates if the preference is active. This can be used to disable a preference without deleting it."
+        },
+        {
+          "name": "preference_key",
+          "type": "varchar(50)",
+          "nullable": false,
+          "comment": "The key for the preference setting (e.g., theme, notifications)."
+        },
+        {
+          "name": "preference_value",
+          "type": "text",
+          "nullable": true,
+          "comment": "The value for the preference setting (e.g., dark mode, true/false)."
+        },
+        {
+          "name": "user_preferences_id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('user_preferences_user_preferences_id_seq'::regclass)",
+          "comment": "Unique identifier for the user preference entry."
+        },
+        {
+          "name": "user_profile_id",
+          "type": "integer",
+          "nullable": false,
+          "comment": "Unique identifier for the user."
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_user_preferences_preference_key",
+          "def": "CREATE INDEX idx_user_preferences_preference_key ON public.user_preferences USING btree (preference_key)",
+          "table": "public.user_preferences",
+          "columns": [
+            "preference_key"
+          ]
+        },
+        {
+          "name": "idx_user_preferences_user_preference_key",
+          "def": "CREATE INDEX idx_user_preferences_user_preference_key ON public.user_preferences USING btree (user_profile_id, preference_key)",
+          "table": "public.user_preferences",
+          "columns": [
+            "user_profile_id",
+            "preference_key"
+          ]
+        },
+        {
+          "name": "idx_user_preferences_user_profile_id",
+          "def": "CREATE INDEX idx_user_preferences_user_profile_id ON public.user_preferences USING btree (user_profile_id)",
+          "table": "public.user_preferences",
+          "columns": [
+            "user_profile_id"
+          ]
+        },
+        {
+          "name": "user_preferences_pkey",
+          "def": "CREATE UNIQUE INDEX user_preferences_pkey ON public.user_preferences USING btree (user_preferences_id)",
+          "table": "public.user_preferences",
+          "columns": [
+            "user_preferences_id"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "user_preferences_pkey",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (user_preferences_id)",
+          "table": "public.user_preferences",
+          "referenced_table": "",
+          "columns": [
+            "user_preferences_id"
+          ]
+        },
+        {
+          "name": "user_preferences_user_profile_id_fkey",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (user_profile_id) REFERENCES user_profile(user_profile_id) ON DELETE CASCADE",
+          "table": "public.user_preferences",
+          "referenced_table": "user_profile",
+          "columns": [
+            "user_profile_id"
+          ],
+          "referenced_columns": [
+            "user_profile_id"
+          ]
+        }
+      ],
+      "triggers": [
+        {
+          "name": "set_datetime_create_trigger",
+          "def": "CREATE TRIGGER set_datetime_create_trigger BEFORE INSERT ON public.user_preferences FOR EACH ROW EXECUTE FUNCTION set_datetime_create()"
+        },
+        {
+          "name": "set_datetime_update_trigger",
+          "def": "CREATE TRIGGER set_datetime_update_trigger BEFORE UPDATE ON public.user_preferences FOR EACH ROW EXECUTE FUNCTION update_datetime_update()"
+        }
+      ]
+    },
+    {
+      "name": "public.user_profile",
+      "type": "BASE TABLE",
+      "comment": "Core user account information",
+      "columns": [
+        {
+          "name": "admin",
+          "type": "boolean",
+          "nullable": true,
+          "default": "false",
+          "comment": "Indicates if the user has admin privileges."
+        },
+        {
+          "name": "created_by",
+          "type": "integer",
+          "nullable": false,
+          "comment": "User ID of the creator of this record."
+        },
+        {
+          "name": "datetime_create",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the user record was created."
+        },
+        {
+          "name": "datetime_update",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the user record was last updated."
+        },
+        {
+          "name": "deleted",
+          "type": "boolean",
+          "nullable": true,
+          "default": "false",
+          "comment": "Indicates if the user account has been marked as deleted."
+        },
+        {
+          "name": "email",
+          "type": "varchar(255)",
+          "nullable": true,
+          "comment": "The user's email address (optional)."
+        },
+        {
+          "name": "email_verified",
+          "type": "boolean",
+          "nullable": true,
+          "default": "false",
+          "comment": "Indicates if the user's email has been verified."
+        },
+        {
+          "name": "first_name",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "The user's first name."
+        },
+        {
+          "name": "last_name",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "The user's last name."
+        },
+        {
+          "name": "password",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "The user's password (hashed)."
+        },
+        {
+          "name": "phone_number",
+          "type": "varchar(20)",
+          "nullable": true,
+          "comment": "The user's phone number (optional)."
+        },
+        {
+          "name": "phone_verified",
+          "type": "boolean",
+          "nullable": true,
+          "default": "false",
+          "comment": "Indicates if the user's phone number has been verified."
+        },
+        {
+          "name": "updated_by",
+          "type": "integer",
+          "nullable": false,
+          "comment": "User ID of who last updated this record."
+        },
+        {
+          "name": "user_profile_id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('user_profile_user_profile_id_seq'::regclass)",
+          "comment": "Unique identifier for the user."
+        },
+        {
+          "name": "username",
+          "type": "varchar(255)",
+          "nullable": false,
+          "comment": "The user's chosen username (must be unique)."
+        },
+        {
+          "name": "verification_token",
+          "type": "varchar(255)",
+          "nullable": true,
+          "comment": "Token used for email/phone verification."
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_user_profile_admin",
+          "def": "CREATE INDEX idx_user_profile_admin ON public.user_profile USING btree (admin)",
+          "table": "public.user_profile",
+          "columns": [
+            "admin"
+          ]
+        },
+        {
+          "name": "idx_user_profile_email",
+          "def": "CREATE UNIQUE INDEX idx_user_profile_email ON public.user_profile USING btree (email)",
+          "table": "public.user_profile",
+          "columns": [
+            "email"
+          ]
+        },
+        {
+          "name": "idx_user_profile_phone_number",
+          "def": "CREATE INDEX idx_user_profile_phone_number ON public.user_profile USING btree (phone_number)",
+          "table": "public.user_profile",
+          "columns": [
+            "phone_number"
+          ]
+        },
+        {
+          "name": "idx_user_profile_username",
+          "def": "CREATE UNIQUE INDEX idx_user_profile_username ON public.user_profile USING btree (username)",
+          "table": "public.user_profile",
+          "columns": [
+            "username"
+          ]
+        },
+        {
+          "name": "idx_user_profile_verification_token",
+          "def": "CREATE INDEX idx_user_profile_verification_token ON public.user_profile USING btree (verification_token)",
+          "table": "public.user_profile",
+          "columns": [
+            "verification_token"
+          ]
+        },
+        {
+          "name": "user_profile_email_key",
+          "def": "CREATE UNIQUE INDEX user_profile_email_key ON public.user_profile USING btree (email)",
+          "table": "public.user_profile",
+          "columns": [
+            "email"
+          ]
+        },
+        {
+          "name": "user_profile_pkey",
+          "def": "CREATE UNIQUE INDEX user_profile_pkey ON public.user_profile USING btree (user_profile_id)",
+          "table": "public.user_profile",
+          "columns": [
+            "user_profile_id"
+          ]
+        },
+        {
+          "name": "user_profile_username_key",
+          "def": "CREATE UNIQUE INDEX user_profile_username_key ON public.user_profile USING btree (username)",
+          "table": "public.user_profile",
+          "columns": [
+            "username"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "user_profile_email_key",
+          "type": "UNIQUE",
+          "def": "UNIQUE (email)",
+          "table": "public.user_profile",
+          "referenced_table": "",
+          "columns": [
+            "email"
+          ]
+        },
+        {
+          "name": "user_profile_pkey",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (user_profile_id)",
+          "table": "public.user_profile",
+          "referenced_table": "",
+          "columns": [
+            "user_profile_id"
+          ]
+        },
+        {
+          "name": "user_profile_username_key",
+          "type": "UNIQUE",
+          "def": "UNIQUE (username)",
+          "table": "public.user_profile",
+          "referenced_table": "",
+          "columns": [
+            "username"
+          ]
+        }
+      ],
+      "triggers": [
+        {
+          "name": "set_datetime_create_trigger",
+          "def": "CREATE TRIGGER set_datetime_create_trigger BEFORE INSERT ON public.user_profile FOR EACH ROW EXECUTE FUNCTION set_datetime_create()"
+        },
+        {
+          "name": "set_datetime_update",
+          "def": "CREATE TRIGGER set_datetime_update BEFORE UPDATE ON public.user_profile FOR EACH ROW EXECUTE FUNCTION update_datetime_update()"
+        }
+      ]
+    },
+    {
+      "name": "public.user_push_tokens",
+      "type": "BASE TABLE",
+      "comment": "FCM push notification tokens",
+      "columns": [
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the record was created."
+        },
+        {
+          "name": "platform",
+          "type": "varchar(10)",
+          "nullable": false,
+          "comment": "The platform for which the push token is valid (ios or android)."
+        },
+        {
+          "name": "push_token",
+          "type": "varchar(500)",
+          "nullable": false,
+          "comment": "The push notification token for the user."
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "comment": "Timestamp when the record was last updated."
+        },
+        {
+          "name": "user_profile_id",
+          "type": "integer",
+          "nullable": false,
+          "comment": "ID of the user associated with the push token."
+        },
+        {
+          "name": "user_push_tokens_id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('user_push_tokens_user_push_tokens_id_seq'::regclass)",
+          "comment": "Unique identifier for the push token record."
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_user_push_tokens_platform",
+          "def": "CREATE INDEX idx_user_push_tokens_platform ON public.user_push_tokens USING btree (platform)",
+          "table": "public.user_push_tokens",
+          "columns": [
+            "platform"
+          ]
+        },
+        {
+          "name": "idx_user_push_tokens_user_id",
+          "def": "CREATE INDEX idx_user_push_tokens_user_id ON public.user_push_tokens USING btree (user_profile_id)",
+          "table": "public.user_push_tokens",
+          "columns": [
+            "user_profile_id"
+          ]
+        },
+        {
+          "name": "idx_user_push_tokens_userid_token",
+          "def": "CREATE UNIQUE INDEX idx_user_push_tokens_userid_token ON public.user_push_tokens USING btree (user_profile_id, push_token)",
+          "table": "public.user_push_tokens",
+          "columns": [
+            "user_profile_id",
+            "push_token"
+          ]
+        },
+        {
+          "name": "user_push_tokens_pkey",
+          "def": "CREATE UNIQUE INDEX user_push_tokens_pkey ON public.user_push_tokens USING btree (user_push_tokens_id)",
+          "table": "public.user_push_tokens",
+          "columns": [
+            "user_push_tokens_id"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "user_push_tokens_pkey",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (user_push_tokens_id)",
+          "table": "public.user_push_tokens",
+          "referenced_table": "",
+          "columns": [
+            "user_push_tokens_id"
+          ]
+        },
+        {
+          "name": "user_push_tokens_platform_check",
+          "type": "CHECK",
+          "def": "CHECK (((platform)::text = ANY ((ARRAY['ios'::character varying, 'android'::character varying])::text[])))",
+          "table": "public.user_push_tokens",
+          "referenced_table": "",
+          "columns": [
+            "platform"
+          ]
+        },
+        {
+          "name": "user_push_tokens_user_profile_id_fkey",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (user_profile_id) REFERENCES user_profile(user_profile_id) ON DELETE CASCADE",
+          "table": "public.user_push_tokens",
+          "referenced_table": "user_profile",
+          "columns": [
+            "user_profile_id"
+          ],
+          "referenced_columns": [
+            "user_profile_id"
+          ]
+        }
+      ],
+      "triggers": [
+        {
+          "name": "set_user_push_tokens_created_at",
+          "def": "CREATE TRIGGER set_user_push_tokens_created_at BEFORE INSERT ON public.user_push_tokens FOR EACH ROW EXECUTE FUNCTION set_user_push_tokens_created_at()"
+        },
+        {
+          "name": "set_user_push_tokens_updated_at",
+          "def": "CREATE TRIGGER set_user_push_tokens_updated_at BEFORE UPDATE ON public.user_push_tokens FOR EACH ROW EXECUTE FUNCTION update_user_push_tokens_updated_at()"
+        }
+      ]
+    },
+    {
+      "name": "public.user_stats",
+      "type": "BASE TABLE",
+      "comment": "Aggregated user statistics",
+      "columns": [
+        {
+          "name": "active_streak",
+          "type": "integer",
+          "nullable": true,
+          "default": "0",
+          "comment": "Current streak of consecutive active days."
+        },
+        {
+          "name": "days_active",
+          "type": "integer",
+          "nullable": true,
+          "default": "0",
+          "comment": "Total number of days the user has been active."
+        },
+        {
+          "name": "prayers_prayed",
+          "type": "integer",
+          "nullable": true,
+          "default": "0",
+          "comment": "Total number of prayers prayed by the user."
+        },
+        {
+          "name": "time_prayed",
+          "type": "interval",
+          "nullable": true,
+          "default": "'00:00:00'::interval",
+          "comment": "Total time spent praying by the user."
+        },
+        {
+          "name": "user_profile_id",
+          "type": "integer",
+          "nullable": false,
+          "comment": "Foreign key referencing the associated user."
+        },
+        {
+          "name": "user_stats_id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('user_stats_user_stats_id_seq'::regclass)",
+          "comment": "Unique identifier for each user stats record."
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_user_stats_user_id",
+          "def": "CREATE UNIQUE INDEX idx_user_stats_user_id ON public.user_stats USING btree (user_profile_id)",
+          "table": "public.user_stats",
+          "columns": [
+            "user_profile_id"
+          ]
+        },
+        {
+          "name": "user_stats_pkey",
+          "def": "CREATE UNIQUE INDEX user_stats_pkey ON public.user_stats USING btree (user_stats_id)",
+          "table": "public.user_stats",
+          "columns": [
+            "user_stats_id"
+          ]
+        }
+      ],
+      "constraints": [
+        {
+          "name": "user_stats_pkey",
+          "type": "PRIMARY KEY",
+          "def": "PRIMARY KEY (user_stats_id)",
+          "table": "public.user_stats",
+          "referenced_table": "",
+          "columns": [
+            "user_stats_id"
+          ]
+        },
+        {
+          "name": "user_stats_user_profile_id_fkey",
+          "type": "FOREIGN KEY",
+          "def": "FOREIGN KEY (user_profile_id) REFERENCES user_profile(user_profile_id)",
+          "table": "public.user_stats",
+          "referenced_table": "user_profile",
+          "columns": [
+            "user_profile_id"
+          ],
+          "referenced_columns": [
+            "user_profile_id"
+          ]
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "table": "public.group_invite",
+      "columns": [
+        "group_profile_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "public.group_profile",
+      "parent_columns": [
+        "group_profile_id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (group_profile_id) REFERENCES group_profile(group_profile_id) ON DELETE CASCADE"
+    },
+    {
+      "table": "public.notification",
+      "columns": [
+        "user_profile_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "public.user_profile",
+      "parent_columns": [
+        "user_profile_id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (user_profile_id) REFERENCES user_profile(user_profile_id)"
+    },
+    {
+      "table": "public.password_reset_tokens",
+      "columns": [
+        "user_profile_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "public.user_profile",
+      "parent_columns": [
+        "user_profile_id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (user_profile_id) REFERENCES user_profile(user_profile_id) ON DELETE CASCADE"
+    },
+    {
+      "table": "public.prayer_access",
+      "columns": [
+        "prayer_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "public.prayer",
+      "parent_columns": [
+        "prayer_id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (prayer_id) REFERENCES prayer(prayer_id)"
+    },
+    {
+      "table": "public.prayer_analytics",
+      "columns": [
+        "prayer_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "public.prayer",
+      "parent_columns": [
+        "prayer_id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (prayer_id) REFERENCES prayer(prayer_id)"
+    },
+    {
+      "table": "public.prayer_category_item",
+      "columns": [
+        "prayer_access_id"
+      ],
+      "cardinality": "zero_or_one",
+      "parent_table": "public.prayer_access",
+      "parent_columns": [
+        "prayer_access_id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (prayer_access_id) REFERENCES prayer_access(prayer_access_id) ON DELETE CASCADE"
+    },
+    {
+      "table": "public.prayer_category_item",
+      "columns": [
+        "prayer_category_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "public.prayer_category",
+      "parent_columns": [
+        "prayer_category_id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (prayer_category_id) REFERENCES prayer_category(prayer_category_id) ON DELETE CASCADE"
+    },
+    {
+      "table": "public.prayer_session",
+      "columns": [
+        "user_profile_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "public.user_profile",
+      "parent_columns": [
+        "user_profile_id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (user_profile_id) REFERENCES user_profile(user_profile_id)"
+    },
+    {
+      "table": "public.prayer_session_detail",
+      "columns": [
+        "prayer_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "public.prayer",
+      "parent_columns": [
+        "prayer_id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (prayer_id) REFERENCES prayer(prayer_id)"
+    },
+    {
+      "table": "public.prayer_session_detail",
+      "columns": [
+        "prayer_session_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "public.prayer_session",
+      "parent_columns": [
+        "prayer_session_id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (prayer_session_id) REFERENCES prayer_session(prayer_session_id)"
+    },
+    {
+      "table": "public.user_group",
+      "columns": [
+        "group_profile_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "public.group_profile",
+      "parent_columns": [
+        "group_profile_id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (group_profile_id) REFERENCES group_profile(group_profile_id)"
+    },
+    {
+      "table": "public.user_group",
+      "columns": [
+        "user_profile_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "public.user_profile",
+      "parent_columns": [
+        "user_profile_id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (user_profile_id) REFERENCES user_profile(user_profile_id)"
+    },
+    {
+      "table": "public.user_preferences",
+      "columns": [
+        "user_profile_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "public.user_profile",
+      "parent_columns": [
+        "user_profile_id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (user_profile_id) REFERENCES user_profile(user_profile_id) ON DELETE CASCADE"
+    },
+    {
+      "table": "public.user_push_tokens",
+      "columns": [
+        "user_profile_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "public.user_profile",
+      "parent_columns": [
+        "user_profile_id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (user_profile_id) REFERENCES user_profile(user_profile_id) ON DELETE CASCADE"
+    },
+    {
+      "table": "public.user_stats",
+      "columns": [
+        "user_profile_id"
+      ],
+      "cardinality": "zero_or_more",
+      "parent_table": "public.user_profile",
+      "parent_columns": [
+        "user_profile_id"
+      ],
+      "parent_cardinality": "exactly_one",
+      "def": "FOREIGN KEY (user_profile_id) REFERENCES user_profile(user_profile_id)"
+    }
+  ],
+  "functions": [
+    {
+      "name": "public.set_datetime_create",
+      "return_type": "trigger",
+      "arguments": "",
+      "type": "FUNCTION"
+    },
+    {
+      "name": "public.set_default_datetime_expires",
+      "return_type": "trigger",
+      "arguments": "",
+      "type": "FUNCTION"
+    },
+    {
+      "name": "public.set_default_expires_at",
+      "return_type": "trigger",
+      "arguments": "",
+      "type": "FUNCTION"
+    },
+    {
+      "name": "public.set_password_reset_tokens_created_at",
+      "return_type": "trigger",
+      "arguments": "",
+      "type": "FUNCTION"
+    },
+    {
+      "name": "public.set_user_push_tokens_created_at",
+      "return_type": "trigger",
+      "arguments": "",
+      "type": "FUNCTION"
+    },
+    {
+      "name": "public.update_datetime_update",
+      "return_type": "trigger",
+      "arguments": "",
+      "type": "FUNCTION"
+    },
+    {
+      "name": "public.update_user_push_tokens_updated_at",
+      "return_type": "trigger",
+      "arguments": "",
+      "type": "FUNCTION"
+    }
+  ],
+  "driver": {
+    "name": "postgres",
+    "database_version": "PostgreSQL 17.4 on aarch64-unknown-linux-gnu, compiled by gcc (GCC) 12.4.0, 64-bit",
+    "meta": {
+      "current_schema": "public",
+      "search_paths": [
+        "postgres",
+        "public"
+      ],
+      "dict": {
+        "Functions": "Stored procedures and functions"
+      }
+    }
+  }
+}

@@ -1,0 +1,73 @@
+# tbls configuration for PrayerLoop database schema documentation
+# https://github.com/k1LoW/tbls
+
+# Database connection - uses environment variable
+# Set PRAYERLOOP_DB_URL before running tbls
+# Format: postgres://user:password@host:port/dbname?sslmode=require
+dsn: ${PRAYERLOOP_DB_URL}
+
+# Output directory for generated documentation
+docPath: docs/schema
+
+# Documentation format
+format:
+  # Use GitHub Flavored Markdown
+  adjust: true
+  # Sort tables alphabetically
+  sort: true
+
+# ER diagram settings
+er:
+  # Generate ER diagram
+  skip: false
+  # Output format (mermaid works well with Docsify)
+  format: mermaid
+  # Show column comments in diagram
+  comment: true
+
+# Include table/column comments from PostgreSQL
+comments:
+  # Labels for tables (customize display names)
+  - table: user_profile
+    tableComment: "Core user account information"
+  - table: prayer
+    tableComment: "Individual prayer requests"
+  - table: prayer_access
+    tableComment: "Controls prayer visibility and sharing"
+  - table: group_profile
+    tableComment: "Prayer groups"
+  - table: user_group
+    tableComment: "User-to-group membership"
+  - table: group_invite
+    tableComment: "Group invitation codes"
+  - table: notification
+    tableComment: "User notifications"
+  - table: preference
+    tableComment: "System preference definitions"
+  - table: user_preferences
+    tableComment: "User-specific preference values"
+  - table: prayer_category
+    tableComment: "Prayer category definitions"
+  - table: prayer_category_item
+    tableComment: "Prayers assigned to categories"
+  - table: prayer_session
+    tableComment: "Prayer session tracking"
+  - table: prayer_session_detail
+    tableComment: "Individual prayers within a session"
+  - table: prayer_analytics
+    tableComment: "Prayer interaction tracking"
+  - table: user_stats
+    tableComment: "Aggregated user statistics"
+  - table: user_push_tokens
+    tableComment: "FCM push notification tokens"
+  - table: password_reset_tokens
+    tableComment: "Password reset verification codes"
+
+# Lint rules (optional - helps catch schema issues)
+lint:
+  # Require primary key on all tables
+  requireTableComment:
+    enabled: false
+  # Warn about tables without indexes
+  requireIndex:
+    enabled: false
