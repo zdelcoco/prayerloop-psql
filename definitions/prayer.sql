@@ -8,12 +8,14 @@ CREATE TABLE IF NOT EXISTS "prayer" (
     is_private BOOLEAN DEFAULT FALSE,
     is_answered BOOLEAN DEFAULT FALSE,
     prayer_priority INT DEFAULT 0,
+    prayer_subject_id INT NOT NULL REFERENCES prayer_subject(prayer_subject_id) ON DELETE CASCADE,
     datetime_answered TIMESTAMP,
     datetime_create TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     datetime_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by INT NOT NULL,
     updated_by INT NOT NULL,
-    deleted BOOLEAN DEFAULT FALSE
+    deleted BOOLEAN DEFAULT FALSE,
+    subject_display_sequence INTEGER DEFAULT 0 NOT NULL
 );
 
 /*** comments ***/
@@ -31,9 +33,13 @@ COMMENT ON COLUMN "prayer".datetime_update IS 'Timestamp when the record was las
 COMMENT ON COLUMN "prayer".created_by IS 'User ID of the creator of this record.';
 COMMENT ON COLUMN "prayer".updated_by IS 'User ID of who last updated this record.';
 COMMENT ON COLUMN "prayer".deleted IS 'Indicates if the prayer request has been marked as deleted.';
+COMMENT ON COLUMN "prayer".prayer_subject_id IS 'The person/family/group this prayer is for.';
+COMMENT ON COLUMN "prayer".subject_display_sequence IS 'User-defined display order for prayers within a prayer subject. Lower values appear first. Sequential integers (0, 1, 2...).';
 
 /*** indexes ***/
 CREATE INDEX IF NOT EXISTS idx_prayer_created_by ON "prayer" (created_by);
+CREATE INDEX IF NOT EXISTS idx_prayer_prayer_subject ON "prayer" (prayer_subject_id);
+CREATE INDEX IF NOT EXISTS idx_prayer_subject_display_sequence ON "prayer" (prayer_subject_id, subject_display_sequence);
 
 /*** functions ***/
 CREATE OR REPLACE FUNCTION set_datetime_create()

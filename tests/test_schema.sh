@@ -100,6 +100,11 @@ EXPECTED_TABLES=(
     "password_reset_tokens"
     "prayer_category"
     "prayer_category_item"
+    "prayer_subject"
+    "prayer_subject_membership"
+    "prayer_connection_request"
+    "prayer_session_config"
+    "prayer_session_config_detail"
 )
 
 MISSING_TABLES=()
@@ -118,7 +123,7 @@ fi
 # Test: Verify table count
 print_test "Verifying table count"
 TABLE_COUNT=$(psql -d $TEST_DB -tAc "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';")
-EXPECTED_COUNT=17
+EXPECTED_COUNT=22
 if [ "$TABLE_COUNT" -eq "$EXPECTED_COUNT" ]; then
     print_pass
 else
@@ -237,6 +242,154 @@ if [ "$REMAINING_ITEMS" -eq "0" ]; then
     print_pass
 else
     print_fail "CASCADE delete did not remove related items"
+fi
+
+# ================================
+# Prayer Subject Tests
+# ================================
+
+# Test: Verify prayer_subject table structure
+print_test "Verifying prayer_subject table structure"
+PRAYER_SUBJECT_COLUMNS=$(psql -d $TEST_DB -tAc "SELECT column_name FROM information_schema.columns WHERE table_name = 'prayer_subject' ORDER BY ordinal_position;")
+EXPECTED_PS_COLUMNS="prayer_subject_id
+prayer_subject_type
+prayer_subject_display_name
+notes
+display_sequence
+photo_s3_key
+user_profile_id
+use_linked_user_photo
+link_status
+datetime_create
+datetime_update
+created_by
+updated_by"
+
+if [ "$PRAYER_SUBJECT_COLUMNS" = "$EXPECTED_PS_COLUMNS" ]; then
+    print_pass
+else
+    print_fail "prayer_subject column structure mismatch"
+fi
+
+# Test: Verify prayer_subject_type check constraint
+print_test "Verifying prayer_subject_type check constraint (should reject invalid value)"
+if psql -d $TEST_DB -c "INSERT INTO prayer_subject (prayer_subject_type, prayer_subject_display_name, created_by) VALUES ('invalid', 'Test', 1);" > /dev/null 2>&1; then
+    print_fail "Check constraint allowed invalid prayer_subject_type"
+else
+    print_pass
+fi
+
+# Test: Verify link_status check constraint
+print_test "Verifying link_status check constraint (should reject invalid value)"
+if psql -d $TEST_DB -c "INSERT INTO prayer_subject (prayer_subject_type, prayer_subject_display_name, link_status, created_by) VALUES ('individual', 'Test', 'invalid', 1);" > /dev/null 2>&1; then
+    print_fail "Check constraint allowed invalid link_status"
+else
+    print_pass
+fi
+
+# Test: Verify valid prayer_subject insert works
+print_test "Verifying valid prayer_subject insert"
+if psql -d $TEST_DB -c "INSERT INTO prayer_subject (prayer_subject_type, prayer_subject_display_name, created_by) VALUES ('individual', 'Test Person', 1);" > /dev/null 2>&1; then
+    print_pass
+else
+    print_fail "Valid prayer_subject insert failed"
+fi
+
+# Test: Verify prayer_subject indexes
+print_test "Verifying indexes on prayer_subject"
+INDEX_COUNT=$(psql -d $TEST_DB -tAc "SELECT COUNT(*) FROM pg_indexes WHERE tablename = 'prayer_subject';")
+EXPECTED_INDEX_COUNT=5  # Primary key + 4 created indexes
+if [ "$INDEX_COUNT" -eq "$EXPECTED_INDEX_COUNT" ]; then
+    print_pass
+else
+    print_fail "Expected $EXPECTED_INDEX_COUNT indexes, found $INDEX_COUNT"
+fi
+
+# Test: Verify prayer_subject triggers
+print_test "Verifying datetime triggers on prayer_subject"
+TRIGGER_COUNT=$(psql -d $TEST_DB -tAc "SELECT COUNT(*) FROM information_schema.triggers WHERE event_object_table = 'prayer_subject';")
+EXPECTED_TRIGGER_COUNT=2
+if [ "$TRIGGER_COUNT" -eq "$EXPECTED_TRIGGER_COUNT" ]; then
+    print_pass
+else
+    print_fail "Expected $EXPECTED_TRIGGER_COUNT triggers, found $TRIGGER_COUNT"
+fi
+
+# ================================
+# Prayer Subject Membership Tests
+# ================================
+
+# Test: Verify prayer_subject_membership unique constraint
+print_test "Verifying unique membership constraint"
+psql -d $TEST_DB -c "INSERT INTO prayer_subject (prayer_subject_id, prayer_subject_type, prayer_subject_display_name, created_by) VALUES (100, 'family', 'Test Family', 1);" > /dev/null 2>&1
+psql -d $TEST_DB -c "INSERT INTO prayer_subject (prayer_subject_id, prayer_subject_type, prayer_subject_display_name, created_by) VALUES (101, 'individual', 'Test Individual', 1);" > /dev/null 2>&1
+psql -d $TEST_DB -c "INSERT INTO prayer_subject_membership (member_prayer_subject_id, group_prayer_subject_id, created_by) VALUES (101, 100, 1);" > /dev/null 2>&1
+if psql -d $TEST_DB -c "INSERT INTO prayer_subject_membership (member_prayer_subject_id, group_prayer_subject_id, created_by) VALUES (101, 100, 1);" > /dev/null 2>&1; then
+    print_fail "Unique constraint allowed duplicate membership"
+else
+    print_pass
+fi
+
+# ================================
+# Prayer Connection Request Tests
+# ================================
+
+# Test: Verify prayer_connection_request status check constraint
+print_test "Verifying connection request status check constraint"
+if psql -d $TEST_DB -c "INSERT INTO prayer_connection_request (requester_id, target_user_id, prayer_subject_id, status) VALUES (1, 2, 1, 'invalid');" > /dev/null 2>&1; then
+    print_fail "Check constraint allowed invalid status"
+else
+    print_pass
+fi
+
+# ================================
+# Prayer Session Config Tests
+# ================================
+
+# Test: Verify prayer_session_config table structure
+print_test "Verifying prayer_session_config table exists and has correct structure"
+SESSION_CONFIG_COLUMNS=$(psql -d $TEST_DB -tAc "SELECT column_name FROM information_schema.columns WHERE table_name = 'prayer_session_config' ORDER BY ordinal_position;")
+EXPECTED_SC_COLUMNS="session_config_id
+user_profile_id
+name
+description
+is_default
+datetime_create
+datetime_update"
+
+if [ "$SESSION_CONFIG_COLUMNS" = "$EXPECTED_SC_COLUMNS" ]; then
+    print_pass
+else
+    print_fail "prayer_session_config column structure mismatch"
+fi
+
+# ================================
+# Prayer Session Item Tests
+# ================================
+
+# Test: Verify prayer_session_config_detail check constraint (must have exactly one of subject or prayer)
+print_test "Verifying session item constraint (reject both NULL)"
+psql -d $TEST_DB -c "INSERT INTO prayer_session_config (session_config_id, user_profile_id, name) VALUES (999, 1, 'Test Session');" > /dev/null 2>&1
+if psql -d $TEST_DB -c "INSERT INTO prayer_session_config_detail (session_config_id, prayer_subject_id, prayer_id) VALUES (999, NULL, NULL);" > /dev/null 2>&1; then
+    print_fail "Check constraint allowed both NULL"
+else
+    print_pass
+fi
+
+# Test: Verify prayer_session_config_detail check constraint (reject both set)
+print_test "Verifying session item constraint (reject both set)"
+if psql -d $TEST_DB -c "INSERT INTO prayer_session_config_detail (session_config_id, prayer_subject_id, prayer_id) VALUES (999, 1, 1);" > /dev/null 2>&1; then
+    print_fail "Check constraint allowed both set"
+else
+    print_pass
+fi
+
+# Test: Verify valid session item insert (subject only)
+print_test "Verifying valid session item insert (subject only)"
+if psql -d $TEST_DB -c "INSERT INTO prayer_session_config_detail (session_config_id, prayer_subject_id, prayer_id) VALUES (999, 1, NULL);" > /dev/null 2>&1; then
+    print_pass
+else
+    print_fail "Valid session item insert failed"
 fi
 
 # Print summary
