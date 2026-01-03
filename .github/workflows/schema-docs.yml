@@ -9,6 +9,9 @@ on:
       - 'definitions/**'
   workflow_dispatch:  # Allow manual trigger
 
+permissions:
+  contents: write
+
 jobs:
   migrate-and-document:
     runs-on: ubuntu-latest
@@ -18,6 +21,44 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Backup database before migrations
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_PUBLIC_IP: ${{ secrets.EC2_PUBLIC_IP }}
+          EC2_USER: ec2-user
+          PRAYERLOOP_DB_URL: ${{ secrets.PRAYERLOOP_DB_URL }}
+          RDS_HOST: ${{ secrets.RDS_HOST }}
+        run: |
+          # Prepare SSH key
+          echo "$EC2_SSH_KEY" > ec2_key.pem
+          chmod 600 ec2_key.pem
+
+          # Copy backup script to EC2
+          echo "Copying backup script to EC2..."
+          ssh -o StrictHostKeyChecking=no -i ec2_key.pem $EC2_USER@$EC2_PUBLIC_IP "mkdir -p ~/src/scripts ~/bak"
+          scp -o StrictHostKeyChecking=no -i ec2_key.pem scripts/backup_db.sh $EC2_USER@$EC2_PUBLIC_IP:~/src/scripts/
+
+          # Parse connection details from URL
+          DB_USER=$(echo "$PRAYERLOOP_DB_URL" | sed -n 's|.*://\([^:]*\):.*|\1|p')
+          DB_PASS=$(echo "$PRAYERLOOP_DB_URL" | sed -n 's|.*://[^:]*:\([^@]*\)@.*|\1|p')
+          DB_NAME=$(echo "$PRAYERLOOP_DB_URL" | sed -n 's|.*/\([^?]*\).*|\1|p')
+
+          # Run backup on EC2 using Docker for pg_dump (avoids version mismatch)
+          echo "Running backup..."
+          BACKUP_FILE=$(ssh -o StrictHostKeyChecking=no -i ec2_key.pem $EC2_USER@$EC2_PUBLIC_IP "
+            export DB_USER='$DB_USER'
+            export DB_NAME='$DB_NAME'
+            export PGPASSWORD='$DB_PASS'
+            export PGHOST='$RDS_HOST'
+            export BACKUP_DIR=/home/ec2-user/bak
+            export USE_DOCKER=true
+            chmod +x ~/src/scripts/backup_db.sh
+            ~/src/scripts/backup_db.sh 2>&1 | tee /tmp/backup.log
+            ls -t ~/bak/*.dump 2>/dev/null | head -1
+          ")
+
+          echo "Backup completed: $BACKUP_FILE"
 
       - name: Run migrations via EC2
         env:
@@ -32,14 +73,14 @@ jobs:
 
           # Copy migration files to EC2
           echo "Copying migration files to EC2..."
-          ssh -o StrictHostKeyChecking=no -i ec2_key.pem $EC2_USER@$EC2_PUBLIC_IP "mkdir -p ~/prayerloop-psql/migrations ~/prayerloop-psql/scripts"
-          scp -o StrictHostKeyChecking=no -i ec2_key.pem -r migrations/* $EC2_USER@$EC2_PUBLIC_IP:~/prayerloop-psql/migrations/
-          scp -o StrictHostKeyChecking=no -i ec2_key.pem scripts/run_migrations.sh $EC2_USER@$EC2_PUBLIC_IP:~/prayerloop-psql/scripts/
+          ssh -o StrictHostKeyChecking=no -i ec2_key.pem $EC2_USER@$EC2_PUBLIC_IP "mkdir -p ~/src/migrations ~/src/scripts"
+          scp -o StrictHostKeyChecking=no -i ec2_key.pem -r migrations/* $EC2_USER@$EC2_PUBLIC_IP:~/src/migrations/
+          scp -o StrictHostKeyChecking=no -i ec2_key.pem scripts/run_migrations.sh $EC2_USER@$EC2_PUBLIC_IP:~/src/scripts/
 
           # Run migrations on EC2
           echo "Running migrations..."
           ssh -o StrictHostKeyChecking=no -i ec2_key.pem $EC2_USER@$EC2_PUBLIC_IP \
-            "export PRAYERLOOP_DB_URL='$PRAYERLOOP_DB_URL' && chmod +x ~/prayerloop-psql/scripts/run_migrations.sh && ~/prayerloop-psql/scripts/run_migrations.sh"
+            "export PRAYERLOOP_DB_URL='$PRAYERLOOP_DB_URL' && chmod +x ~/src/scripts/run_migrations.sh && ~/src/scripts/run_migrations.sh"
 
       - name: Install tbls
         run: |
