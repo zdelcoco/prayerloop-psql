@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   migrate-and-document:
@@ -112,7 +113,9 @@ jobs:
           export PRAYERLOOP_DB_URL="$TUNNEL_URL"
           tbls doc --force
 
-      - name: Commit and push updated docs
+      - name: Create PR for updated docs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
@@ -121,9 +124,17 @@ jobs:
           if git diff --quiet docs/; then
             echo "No changes to schema documentation."
           else
+            BRANCH="docs/auto-update-schema-$(date +%Y%m%d-%H%M%S)"
+            git checkout -b "$BRANCH"
             git add docs/
             git commit -m "docs: auto-update schema documentation
 
           🤖 Generated with tbls after migration"
-            git push
+            git push origin "$BRANCH"
+            gh pr create \
+              --title "docs: auto-update schema documentation" \
+              --body "🤖 Auto-generated schema documentation update from tbls after migration.
+
+          This PR was automatically created by the schema-docs workflow." \
+              --base main
           fi
