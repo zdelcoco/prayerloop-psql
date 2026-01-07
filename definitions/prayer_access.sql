@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS "prayer_access" CASCADE;
 CREATE TABLE IF NOT EXISTS "prayer_access" (
     prayer_access_id SERIAL PRIMARY KEY,
     prayer_id INT NOT NULL,
-    access_type VARCHAR(5) NOT NULL,
+    access_type VARCHAR(10) NOT NULL,
     access_type_id INT NOT NULL,
     display_sequence INTEGER DEFAULT 0 NOT NULL,
     datetime_create TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS "prayer_access" (
 COMMENT ON TABLE "prayer_access" IS 'This table stores access records for prayer requests.';
 COMMENT ON COLUMN "prayer_access".prayer_access_id IS 'Unique identifier for each prayer access record.';
 COMMENT ON COLUMN "prayer_access".prayer_id IS 'Foreign key referencing the prayer request.';
-COMMENT ON COLUMN "prayer_access".access_type IS 'Type of access (e.g., ''user'', ''group'').';
+COMMENT ON COLUMN "prayer_access".access_type IS 'Type of access (e.g., ''user'', ''group'', ''subject'').';
 COMMENT ON COLUMN "prayer_access".access_type_id IS 'ID value of the associated type (e.g., if access_type is user, then use user.user_profile_id value).';
 COMMENT ON COLUMN "prayer_access".display_sequence IS 'User-defined display order for prayers. Lower values appear first. Sequential integers (0, 1, 2...).';
 COMMENT ON COLUMN "prayer_access".datetime_create IS 'Timestamp when the record was created.';
